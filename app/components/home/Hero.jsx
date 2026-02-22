@@ -69,7 +69,7 @@ const Hero = () => {
                 className="object-cover group-hover:scale-105 transition-transform"
               />
               <span className="absolute bottom-4 right-4 bg-[#fcd34d] text-[10px] font-bold px-3 py-1.5 rounded-full uppercase">
-                Print on Demand
+                Self-Inking Stamps
               </span>
             </div>
             {/* Bottom Side Image */}
@@ -81,7 +81,7 @@ const Hero = () => {
                 className="object-cover group-hover:scale-105 transition-transform"
               />
               <span className="absolute bottom-4 right-4 bg-[#fcd34d] text-[10px] font-bold px-3 py-1.5 rounded-full uppercase">
-                Business Card
+                Equipment & Phenolic Tags
               </span>
             </div>
           </div>
