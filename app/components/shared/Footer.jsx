@@ -103,7 +103,7 @@ const Footer = () => {
           {/* Bottom Bar */}
           <div className="mt-5 pt-8 border-t border-gray-800 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-white">
             <p>
-              © 2023{" "}
+              © {new Date().getFullYear()}{" "}
               <span className="text-[#EE2A24]">plastic Letters & Sign</span>.
               All rights reserved.
             </p>
