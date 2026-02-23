@@ -112,9 +112,12 @@ const ProductCard = ({ product }) => (
       </div>
 
       {/* Action Button */}
-      <button className="w-full bg-[#EE2A24] text-white py-2.5 rounded-lg font-bold text-sm transition-all hover:bg-[#d6221c] active:scale-[0.98]">
+      <Link
+        href={`/products/${product.id}`}
+        className="w-full bg-[#EE2A24] text-white py-2.5 rounded-lg font-bold text-sm transition-all hover:bg-[#d6221c] active:scale-[0.98] flex justify-center items-center"
+      >
         Customize Now
-      </button>
+      </Link>
     </div>
   </div>
 );

@@ -4,6 +4,7 @@ import sign1 from "../../../public/sign1.png";
 import sign2 from "../../../public/sign2.png";
 import sign3 from "../../../public/sign3.png";
 import Title from "../shared/Title";
+import Link from "next/link";
 const Hero = () => {
   const features = [
     "Quality Services Provider",
@@ -31,8 +32,18 @@ const Hero = () => {
             ))}
           </ul>
           <div className="flex flex-wrap gap-4 pt-4">
-            <button className="btn-primary">Get Started</button>
-            <button className="btn-outline">Request a Quote</button>
+            <Link
+              href={`/register`}
+              className="btn-primary flex justify-center items-center"
+            >
+              Get Started
+            </Link>
+            <Link
+              href="/request-quote"
+              className="btn-outline flex justify-center items-center"
+            >
+              Request a Quote
+            </Link>
           </div>
           {/* Eclipse design */}
           <div

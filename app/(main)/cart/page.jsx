@@ -9,6 +9,7 @@ import {
   Minus,
   ShieldCheck,
 } from "lucide-react";
+import Link from "next/link";
 
 /**
  * Reusable Form Field matching the input style of the mockups
@@ -603,9 +604,12 @@ export default function CheckoutFlow() {
 
         {/* Action Buttons */}
         <div className="w-full flex flex-col sm:flex-row gap-4">
-          <button className="flex-1 bg-[#2B6BFF] text-white py-3.5 rounded-lg font-medium hover:bg-blue-600 transition-colors text-[15px]">
+          <Link
+            href={"/order-dashboard"}
+            className="flex-1 bg-[#2B6BFF] text-white py-3.5 rounded-lg font-medium hover:bg-blue-600 transition-colors text-[15px]"
+          >
             View Order Status
-          </button>
+          </Link>
           <button
             onClick={() => setStep(0)}
             className="flex-1 bg-white border border-gray-200 text-[#1e1e2d] py-3.5 rounded-lg font-medium hover:bg-gray-50 transition-colors text-[15px]"

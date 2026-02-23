@@ -62,7 +62,7 @@ const MobileNavbar = () => {
               <hr className="my-2 border-slate-100" />
 
               <Link
-                href="/get-started"
+                href="/register"
                 onClick={() => setIsOpen(false)}
                 className="btn-primary w-full text-center flex justify-center items-center"
               >
