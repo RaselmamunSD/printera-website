@@ -3,6 +3,8 @@ import "./globals.css";
 import Navbar from "./components/shared/Navbar";
 import Ad from "./components/shared/Ad";
 import Footer from "./components/shared/Footer";
+import Logout from "./components/shared/Logout";
+import Link from "next/link";
 
 const sora = Sora({
   variable: "--font-sora",
@@ -17,7 +19,15 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className={`${sora.className} antialiased `}>{children}</body>
+      <body className={`${sora.className} antialiased `}>
+        <nav>
+          <Link href="/login">Login</Link>
+          <Link href="/register">Register</Link>
+          <Link href="/profile">Profile</Link>
+          <Logout />
+        </nav>
+        {children}
+      </body>
     </html>
   );
 }
