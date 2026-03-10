@@ -2,11 +2,71 @@
 import React, { useState } from "react";
 import { Mail, Lock, ArrowLeft, CheckCircle2, Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import axios from "@/lib/axios";
 
 export default function ForgotPasswordFlow() {
+  const router = useRouter();
   // States: 'request' | 'check-email' | 'reset' | 'success'
   const [step, setStep] = useState("request");
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [email, setEmail] = useState("");
+
+  const handleRequestReset = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+
+    const emailValue = e.target.email.value;
+    setEmail(emailValue);
+
+    try {
+      await axios.post("/auth/forgot-password/", {
+        email: emailValue,
+      });
+      setStep("check-email");
+    } catch (err) {
+      setError(err.response?.data?.error || "Failed to send reset link. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResetPassword = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+
+    const newPassword = e.target.new_password.value;
+    const confirmPassword = e.target.confirm_password.value;
+
+    if (newPassword !== confirmPassword) {
+      setError("Passwords do not match");
+      setLoading(false);
+      return;
+    }
+
+    if (newPassword.length < 8) {
+      setError("Password must be at least 8 characters");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      // In a real implementation, you would include a reset token here
+      await axios.post("/auth/reset-password/", {
+        email,
+        new_password: newPassword,
+      });
+      setStep("success");
+    } catch (err) {
+      setError(err.response?.data?.error || "Failed to reset password. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleNext = (e, nextStep) => {
     e?.preventDefault();
@@ -23,12 +83,19 @@ export default function ForgotPasswordFlow() {
               Forgot Password?
             </h1>
             <p className="text-gray-500 text-sm font-medium">
-              Enter your email address and we'll send you a reset link.
+              Enter your email address and we will send you a reset link.
             </p>
           </div>
+
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl text-sm font-medium">
+              {error}
+            </div>
+          )}
+
           <form
             className="space-y-6"
-            onSubmit={(e) => handleNext(e, "check-email")}
+            onSubmit={handleRequestReset}
           >
             <div className="space-y-1.5">
               <label className="text-xs font-bold text-gray-400 uppercase tracking-widest">
@@ -40,6 +107,7 @@ export default function ForgotPasswordFlow() {
                 </span>
                 <input
                   required
+                  name="email"
                   type="email"
                   placeholder="your.email@example.com"
                   className="w-full pl-12 pr-4 py-3.5 border border-gray-100 rounded-xl outline-none focus:border-[#EE2A24] transition-all font-medium"
@@ -48,18 +116,19 @@ export default function ForgotPasswordFlow() {
             </div>
             <button
               type="submit"
-              className="w-full bg-[#EE2A24] text-white py-4 rounded-xl font-bold shadow-lg shadow-red-100 hover:bg-[#d6221c] transition-all active:scale-[0.98]"
+              disabled={loading}
+              className="w-full bg-[#EE2A24] text-white py-4 rounded-xl font-bold shadow-lg shadow-red-100 hover:bg-[#d6221c] transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Send Reset Link
+              {loading ? "Sending..." : "Send Reset Link"}
             </button>
           </form>
           <div className="text-center">
-            <button
-              onClick={() => window.history.back()}
+            <Link
+              href="/login"
               className="text-sm font-bold text-gray-400 hover:text-gray-600 flex items-center justify-center gap-2 w-full"
             >
               <ArrowLeft size={16} /> Back to Sign In
-            </button>
+            </Link>
           </div>
         </div>
       )}
@@ -77,9 +146,9 @@ export default function ForgotPasswordFlow() {
               Check Your Email
             </h1>
             <p className="text-gray-500 text-sm">
-              We've sent a password reset link to <br />
+              We have sent a password reset link to <br />
               <span className="font-bold text-gray-900">
-                sohan310@gmail.com
+                {email}
               </span>
             </p>
           </div>
@@ -90,7 +159,7 @@ export default function ForgotPasswordFlow() {
             Open Reset Link
           </button>
           <p className="text-sm text-gray-400 font-medium">
-            Didn't receive the email?{" "}
+            Did not receive the email?{" "}
             <button
               onClick={() => setStep("request")}
               className="text-[#EE2A24] font-bold hover:underline"
@@ -112,9 +181,16 @@ export default function ForgotPasswordFlow() {
               Enter your new password below.
             </p>
           </div>
+
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl text-sm font-medium">
+              {error}
+            </div>
+          )}
+
           <form
             className="space-y-5"
-            onSubmit={(e) => handleNext(e, "success")}
+            onSubmit={handleResetPassword}
           >
             <div className="space-y-1.5">
               <label className="text-xs font-bold text-gray-400 uppercase tracking-widest">
@@ -126,6 +202,7 @@ export default function ForgotPasswordFlow() {
                 </span>
                 <input
                   required
+                  name="new_password"
                   type={showPassword ? "text" : "password"}
                   className="w-full pl-12 pr-12 py-3.5 border border-gray-100 rounded-xl outline-none focus:border-[#EE2A24] transition-all font-medium"
                 />
@@ -136,7 +213,7 @@ export default function ForgotPasswordFlow() {
                 >
                   {showPassword ?
                     <EyeOff size={18} />
-                  : <Eye size={18} />}
+                    : <Eye size={18} />}
                 </button>
               </div>
               <p className="text-[10px] text-gray-400 font-bold uppercase tracking-tighter">
@@ -153,6 +230,7 @@ export default function ForgotPasswordFlow() {
                 </span>
                 <input
                   required
+                  name="confirm_password"
                   type="password"
                   className="w-full pl-12 pr-4 py-3.5 border border-gray-100 rounded-xl outline-none focus:border-[#EE2A24] transition-all font-medium"
                 />
@@ -160,9 +238,10 @@ export default function ForgotPasswordFlow() {
             </div>
             <button
               type="submit"
-              className="w-full bg-[#EE2A24] text-white py-4 rounded-xl font-bold shadow-lg shadow-red-100 hover:bg-[#d6221c] transition-all mt-2"
+              disabled={loading}
+              className="w-full bg-[#EE2A24] text-white py-4 rounded-xl font-bold shadow-lg shadow-red-100 hover:bg-[#d6221c] transition-all mt-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Reset Password
+              {loading ? "Resetting..." : "Reset Password"}
             </button>
           </form>
         </div>
@@ -196,3 +275,4 @@ export default function ForgotPasswordFlow() {
     </div>
   );
 }
+

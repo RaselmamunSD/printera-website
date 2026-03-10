@@ -5,6 +5,7 @@ import Ad from "./components/shared/Ad";
 import Footer from "./components/shared/Footer";
 import Logout from "./components/shared/Logout";
 import Link from "next/link";
+import { Toaster } from "react-hot-toast";
 
 const sora = Sora({
   variable: "--font-sora",
@@ -20,13 +21,9 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className={`${sora.className} antialiased `}>
-        <nav>
-          <Link href="/login">Login</Link>
-          <Link href="/register">Register</Link>
-          <Link href="/profile">Profile</Link>
-          <Logout />
-        </nav>
+
         {children}
+        <Toaster />
       </body>
     </html>
   );

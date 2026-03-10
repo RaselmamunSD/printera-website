@@ -2,22 +2,66 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Eye, EyeOff, Mail, Lock, User } from "lucide-react";
 import google from "../../../public/auth/google.png";
+import axios from "@/lib/axios";
+
 export default function Login() {
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+
+    const email = e.target.email.value;
+    const password = e.target.password.value;
+
+    try {
+      const response = await axios.post("/auth/login/", {
+        email,
+        password,
+      });
+
+      if (response.data.access) {
+        localStorage.setItem("access_token", response.data.access);
+        localStorage.setItem("refresh_token", response.data.refresh);
+        localStorage.setItem("user", JSON.stringify(response.data.user));
+        router.push("/");
+      }
+    } catch (err) {
+      setError(err.response?.data?.error || "Login failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleLogin = () => {
+    // Google OAuth implementation using django-allauth
+    window.location.href = `${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://127.0.0.1:8000'}/accounts/google/login/?next=/`;
+  };
 
   return (
     <div className="flex-1 flex items-center justify-center p-8 bg-white">
       <div className="w-full max-w-[440px] space-y-8">
         <div className="space-y-2">
           <h1 className="text-3xl font-black text-[#1e1e2d] tracking-tight text-center lg:text-left">
-            Create Account
+            Sign In
           </h1>
         </div>
 
-        <form className="space-y-5">
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl text-sm font-medium">
+            {error}
+          </div>
+        )}
+
+        <form className="space-y-5" onSubmit={handleSubmit}>
           {/* Email Address */}
           <div className="space-y-1.5">
             <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">
@@ -28,8 +72,10 @@ export default function Login() {
                 <Mail size={18} />
               </span>
               <input
+                name="email"
                 type="email"
                 placeholder="your.email@example.com"
+                required
                 className="w-full pl-12 pr-4 py-3.5 bg-white border border-gray-200 rounded-xl outline-none focus:border-[#EE2A24] focus:ring-4 focus:ring-red-50 transition-all font-medium placeholder:text-gray-300"
               />
             </div>
@@ -45,8 +91,10 @@ export default function Login() {
                 <Lock size={18} />
               </span>
               <input
+                name="password"
                 type={showPassword ? "text" : "password"}
                 placeholder="••••••••"
+                required
                 className="w-full pl-12 pr-12 py-3.5 bg-white border border-gray-200 rounded-xl outline-none focus:border-[#EE2A24] focus:ring-4 focus:ring-red-50 transition-all font-medium placeholder:text-gray-300"
               />
               <button
@@ -56,7 +104,7 @@ export default function Login() {
               >
                 {showPassword ?
                   <EyeOff size={18} />
-                : <Eye size={18} />}
+                  : <Eye size={18} />}
               </button>
             </div>
           </div>
@@ -67,9 +115,10 @@ export default function Login() {
 
           <button
             type="submit"
-            className="w-full bg-[#EE2A24] text-white py-4 rounded-xl font-bold shadow-xl shadow-red-100 hover:bg-[#d6221c] transition-all active:scale-[0.98] mt-4"
+            disabled={loading}
+            className="w-full bg-[#EE2A24] text-white py-4 rounded-xl font-bold shadow-xl shadow-red-100 hover:bg-[#d6221c] transition-all active:scale-[0.98] mt-4 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Sign In
+            {loading ? "Signing In..." : "Sign In"}
           </button>
         </form>
 
@@ -97,7 +146,11 @@ export default function Login() {
         </div>
 
         {/* Social Auth */}
-        <button className="w-full flex items-center justify-center gap-3 border-2 border-[#EB221E] py-3.5 rounded-xl font-bold text-gray-600 hover:bg-gray-50 hover:border-gray-200 transition-all">
+        <button
+          type="button"
+          onClick={handleGoogleLogin}
+          className="w-full flex items-center justify-center gap-3 border-2 border-[#EB221E] py-3.5 rounded-xl font-bold text-gray-600 hover:bg-gray-50 hover:border-gray-200 transition-all"
+        >
           <Image src={google} alt="" className="w-5 h-5" />
           Continue with Google
         </button>

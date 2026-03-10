@@ -2,11 +2,65 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Eye, EyeOff, Mail, Lock, User } from "lucide-react";
 import google from "../../../public/auth/google.png";
+import axios from "@/lib/axios";
+
 export default function Register() {
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+    setSuccess("");
+
+    const username = e.target.username.value;
+    const email = e.target.email.value;
+    const password = e.target.password.value;
+    const password2 = e.target.password2.value;
+
+    if (password !== password2) {
+      setError("Passwords do not match");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const response = await axios.post("/auth/register/", {
+        username,
+        email,
+        password,
+        password2,
+      });
+
+      if (response.status === 201) {
+        setSuccess("Account created successfully! Redirecting to login...");
+        setTimeout(() => {
+          router.push("/login");
+        }, 2000);
+      }
+    } catch (err) {
+      const errorMessage = err.response?.data?.password 
+        || err.response?.data?.email 
+        || err.response?.data?.username 
+        || err.response?.data?.error 
+        || "Registration failed. Please try again.";
+      setError(Array.isArray(errorMessage) ? errorMessage[0] : errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleLogin = () => {
+    window.location.href = `${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://127.0.0.1:8000'}/api/auth/google/`;
+  };
 
   return (
     <div className="flex-1 flex items-center justify-center p-8 bg-white">
@@ -17,19 +71,33 @@ export default function Register() {
           </h1>
         </div>
 
-        <form className="space-y-5">
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl text-sm font-medium">
+            {error}
+          </div>
+        )}
+
+        {success && (
+          <div className="bg-green-50 border border-green-200 text-green-600 px-4 py-3 rounded-xl text-sm font-medium">
+            {success}
+          </div>
+        )}
+
+        <form className="space-y-5" onSubmit={handleSubmit}>
           {/* Full Name */}
           <div className="space-y-1.5">
             <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">
-              Full Name
+              Username
             </label>
             <div className="relative group">
               <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#EE2A24] transition-colors">
                 <User size={18} />
               </span>
               <input
+                name="username"
                 type="text"
-                placeholder="Enter your name"
+                placeholder="Enter your username"
+                required
                 className="w-full pl-12 pr-4 py-3.5 bg-white border border-gray-200 rounded-xl outline-none focus:border-[#EE2A24] focus:ring-4 focus:ring-red-50 transition-all font-medium placeholder:text-gray-300"
               />
             </div>
@@ -45,8 +113,10 @@ export default function Register() {
                 <Mail size={18} />
               </span>
               <input
+                name="email"
                 type="email"
                 placeholder="your.email@example.com"
+                required
                 className="w-full pl-12 pr-4 py-3.5 bg-white border border-gray-200 rounded-xl outline-none focus:border-[#EE2A24] focus:ring-4 focus:ring-red-50 transition-all font-medium placeholder:text-gray-300"
               />
             </div>
@@ -62,8 +132,11 @@ export default function Register() {
                 <Lock size={18} />
               </span>
               <input
+                name="password"
                 type={showPassword ? "text" : "password"}
                 placeholder="••••••••"
+                required
+                minLength={8}
                 className="w-full pl-12 pr-12 py-3.5 bg-white border border-gray-200 rounded-xl outline-none focus:border-[#EE2A24] focus:ring-4 focus:ring-red-50 transition-all font-medium placeholder:text-gray-300"
               />
               <button
@@ -88,8 +161,11 @@ export default function Register() {
                 <Lock size={18} />
               </span>
               <input
+                name="password2"
                 type={showConfirmPassword ? "text" : "password"}
                 placeholder="••••••••"
+                required
+                minLength={8}
                 className="w-full pl-12 pr-12 py-3.5 bg-white border border-gray-200 rounded-xl outline-none focus:border-[#EE2A24] focus:ring-4 focus:ring-red-50 transition-all font-medium placeholder:text-gray-300"
               />
               <button
@@ -106,9 +182,10 @@ export default function Register() {
 
           <button
             type="submit"
-            className="w-full bg-[#EE2A24] text-white py-4 rounded-xl font-bold shadow-xl shadow-red-100 hover:bg-[#d6221c] transition-all active:scale-[0.98] mt-4"
+            disabled={loading}
+            className="w-full bg-[#EE2A24] text-white py-4 rounded-xl font-bold shadow-xl shadow-red-100 hover:bg-[#d6221c] transition-all active:scale-[0.98] mt-4 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Create Account
+            {loading ? "Creating Account..." : "Create Account"}
           </button>
         </form>
 
@@ -136,7 +213,11 @@ export default function Register() {
         </div>
 
         {/* Social Auth */}
-        <button className="w-full flex items-center justify-center gap-3 border-2 border-[#EB221E] py-3.5 rounded-xl font-bold text-gray-600 hover:bg-gray-50 hover:border-gray-200 transition-all">
+        <button 
+          type="button"
+          onClick={handleGoogleLogin}
+          className="w-full flex items-center justify-center gap-3 border-2 border-[#EB221E] py-3.5 rounded-xl font-bold text-gray-600 hover:bg-gray-50 hover:border-gray-200 transition-all"
+        >
           <Image src={google} alt="" className="w-5 h-5" />
           Continue with Google
         </button>
@@ -144,3 +225,4 @@ export default function Register() {
     </div>
   );
 }
+
