@@ -153,7 +153,12 @@ export default function ForgotPasswordFlow() {
             </p>
           </div>
           <button
-            onClick={(e) => handleNext(e, "reset")}
+            onClick={(e) => {
+              // Open Gmail in new tab
+              window.open("https://mail.google.com/mail/u/0/#inbox", "_blank");
+              // Also proceed to reset form
+              handleNext(e, "reset");
+            }}
             className="w-full bg-[#EE2A24] text-white py-4 rounded-xl font-bold hover:bg-[#d6221c] transition-all shadow-lg shadow-red-100"
           >
             Open Reset Link

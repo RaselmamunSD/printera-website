@@ -47,10 +47,10 @@ export default function Register() {
         }, 2000);
       }
     } catch (err) {
-      const errorMessage = err.response?.data?.password 
-        || err.response?.data?.email 
-        || err.response?.data?.username 
-        || err.response?.data?.error 
+      const errorMessage = err.response?.data?.password
+        || err.response?.data?.email
+        || err.response?.data?.username
+        || err.response?.data?.error
         || "Registration failed. Please try again.";
       setError(Array.isArray(errorMessage) ? errorMessage[0] : errorMessage);
     } finally {
@@ -59,7 +59,10 @@ export default function Register() {
   };
 
   const handleGoogleLogin = () => {
-    window.location.href = `${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://127.0.0.1:8000'}/api/auth/google/`;
+    // Google OAuth implementation using django-allauth
+    // Remove trailing slash from base URL to avoid double slashes
+    const baseURL = (process.env.NEXT_PUBLIC_BACKEND_URL || 'http://127.0.0.1:8000').replace(/\/$/, '');
+    window.location.href = `${baseURL}/accounts/google/login/?next=/`;
   };
 
   return (
@@ -146,7 +149,7 @@ export default function Register() {
               >
                 {showPassword ?
                   <EyeOff size={18} />
-                : <Eye size={18} />}
+                  : <Eye size={18} />}
               </button>
             </div>
           </div>
@@ -175,7 +178,7 @@ export default function Register() {
               >
                 {showConfirmPassword ?
                   <EyeOff size={18} />
-                : <Eye size={18} />}
+                  : <Eye size={18} />}
               </button>
             </div>
           </div>
@@ -213,7 +216,7 @@ export default function Register() {
         </div>
 
         {/* Social Auth */}
-        <button 
+        <button
           type="button"
           onClick={handleGoogleLogin}
           className="w-full flex items-center justify-center gap-3 border-2 border-[#EB221E] py-3.5 rounded-xl font-bold text-gray-600 hover:bg-gray-50 hover:border-gray-200 transition-all"
