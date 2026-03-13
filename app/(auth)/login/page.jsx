@@ -42,10 +42,9 @@ export default function Login() {
   };
 
   const handleGoogleLogin = () => {
-    // Google OAuth implementation using django-allauth
-    // Remove trailing slash from base URL to avoid double slashes
-    const baseURL = (process.env.NEXT_PUBLIC_BACKEND_URL || 'http://127.0.0.1:8000').replace(/\/$/, '');
-    window.location.href = `${baseURL}/accounts/google/login/?next=/`;
+    const apiBaseUrl = (process.env.NEXT_PUBLIC_BACKEND_URL || "http://127.0.0.1:8000/api").replace(/\/$/, "");
+    const backendOrigin = apiBaseUrl.replace(/\/api$/, "");
+    window.location.href = `${backendOrigin}/api/auth/google/`;
   };
 
   return (

@@ -34,40 +34,6 @@ export default function ForgotPasswordFlow() {
     }
   };
 
-  const handleResetPassword = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
-
-    const newPassword = e.target.new_password.value;
-    const confirmPassword = e.target.confirm_password.value;
-
-    if (newPassword !== confirmPassword) {
-      setError("Passwords do not match");
-      setLoading(false);
-      return;
-    }
-
-    if (newPassword.length < 8) {
-      setError("Password must be at least 8 characters");
-      setLoading(false);
-      return;
-    }
-
-    try {
-      // In a real implementation, you would include a reset token here
-      await axios.post("/auth/reset-password/", {
-        email,
-        new_password: newPassword,
-      });
-      setStep("success");
-    } catch (err) {
-      setError(err.response?.data?.error || "Failed to reset password. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleNext = (e, nextStep) => {
     e?.preventDefault();
     setStep(nextStep);
@@ -152,17 +118,14 @@ export default function ForgotPasswordFlow() {
               </span>
             </p>
           </div>
-          <button
-            onClick={(e) => {
-              // Open Gmail in new tab
-              window.open("https://mail.google.com/mail/u/0/#inbox", "_blank");
-              // Also proceed to reset form
-              handleNext(e, "reset");
-            }}
-            className="w-full bg-[#EE2A24] text-white py-4 rounded-xl font-bold hover:bg-[#d6221c] transition-all shadow-lg shadow-red-100"
+          <a
+            href="https://mail.google.com/mail/u/0/#inbox"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block w-full bg-[#EE2A24] text-white py-4 rounded-xl font-bold hover:bg-[#d6221c] transition-all shadow-lg shadow-red-100 text-center"
           >
-            Open Reset Link
-          </button>
+            Open Gmail Inbox
+          </a>
           <p className="text-sm text-gray-400 font-medium">
             Did not receive the email?{" "}
             <button
@@ -175,8 +138,8 @@ export default function ForgotPasswordFlow() {
         </div>
       )}
 
-      {/* STEP 3: RESET PASSWORD */}
-      {step === "reset" && (
+      {/* STEP 3: RESET PASSWORD — handled by /reset-password page via email link */}
+      {step === "reset" && false && (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
           <div className="text-center space-y-2">
             <h1 className="text-3xl font-black text-[#1e1e2d]">

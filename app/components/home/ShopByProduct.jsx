@@ -1,89 +1,18 @@
-import React from "react";
+"use client";
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import { ArrowRight } from "lucide-react";
-import product1 from "../../../public/Products/product1.png";
-import product2 from "../../../public/Products/product2.png";
-import product3 from "../../../public/Products/product3.png";
-import product4 from "../../../public/Products/product4.png";
-import product5 from "../../../public/Products/product5.png";
-import product6 from "../../../public/Products/product6.png";
-import product7 from "../../../public/Products/product7.png";
-import product8 from "../../../public/Products/product8.png";
 import Link from "next/link";
-const PRODUCTS = [
-  {
-    id: 1,
-    title: "ADA Restroom Sign",
-    description: "ADA compliant restroom signage with Braille",
-    price: 45,
-    materials: ["Acrylic", "Plastic"],
-    image: product1,
-  },
-  {
-    id: 2,
-    title: "ADA Room Identification Sign",
-    description: "Customizable room number signs with Braille",
-    price: 38,
-    materials: ["Acrylic", "Metal", "Plastic"],
-    image: product2,
-  },
-  {
-    id: 3,
-    title: "Vinyl Banner",
-    description: "Durable vinyl banners for any event",
-    price: 65,
-    materials: ["Plastic"],
-    image: product3,
-  },
-  {
-    id: 4,
-    title: "Engraved Cover Plates",
-    description: "Cover Plate plate with engraving",
-    price: 5,
-    materials: ["Plastic"],
-    image: product4,
-  },
-  {
-    id: 5,
-    title: "Nameplate",
-    description: "Professional metal nameplates",
-    price: 28,
-    materials: ["Acrylic", "Metal", "Plastic"],
-    image: product5,
-  },
-  {
-    id: 6,
-    title: "Custom Decal",
-    description: "Custom printed decals and stickers",
-    price: 15,
-    materials: ["Acrylic", "Metal", "Plastic"],
-    image: product6,
-  },
-  {
-    id: 7,
-    title: "Aluminum Sign",
-    description: "Weather-resistant aluminum signs",
-    price: 55,
-    materials: ["Metal"],
-    image: product7,
-  },
-  {
-    id: 8,
-    title: "Phenolic & Equipment Tags",
-    description:
-      "Durable engraved tags for reliable industrial identification.",
-    price: 25,
-    materials: ["Metal", "Plastic"],
-    image: product8,
-  },
-];
+import axios from "@/lib/axios";
+
+const FALLBACK_PRODUCT_IMAGE = "/Products/product1.png";
 
 const ProductCard = ({ product }) => (
   <div className="flex flex-col bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm transition-shadow hover:shadow-md">
     {/* Image Container - Fixed Aspect Ratio */}
     <div className="relative aspect-[16/11] bg-gray-50">
       <Image
-        src={product.image}
+        src={product.image_url || FALLBACK_PRODUCT_IMAGE}
         alt={product.title}
         fill
         className="object-cover"
@@ -107,7 +36,7 @@ const ProductCard = ({ product }) => (
           </span>
         </div>
         <div className="text-[11px] text-gray-400 font-medium text-right">
-          {product.materials.join(", ")}
+          {(product.materials || []).join(", ")}
         </div>
       </div>
 
@@ -123,23 +52,77 @@ const ProductCard = ({ product }) => (
 );
 
 export default function ShopByProduct() {
+  const [loading, setLoading] = useState(true);
+  const [section, setSection] = useState({
+    title: "Shop by Product",
+    subtitle: "Find the perfect signage solution for your industry",
+    view_all_text: "View All Products",
+    products: [],
+  });
+
+  useEffect(() => {
+    const fetchSection = async () => {
+      try {
+        const response = await axios.get("/shop-by-products/");
+        if (response?.data) {
+          setSection({
+            title: response.data.title || "Shop by Product",
+            subtitle:
+              response.data.subtitle || "Find the perfect signage solution for your industry",
+            view_all_text: response.data.view_all_text || "View All Products",
+            products: Array.isArray(response.data.products) ? response.data.products : [],
+          });
+        }
+      } catch {
+        // Keep safe fallback state for homepage rendering.
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSection();
+  }, []);
+
   return (
     <section className=" py-16 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         {/* Header Section */}
         <div className="text-center mb-12">
-          <h2 className="title">Shop by Product</h2>
+          <h2 className="title">{section.title}</h2>
           <p className="mt-3 sub-title">
-            Find the perfect signage solution for your industry
+            {section.subtitle}
           </p>
         </div>
 
         {/* Grid: 1 col mobile, 2 col tablet, 4 col desktop */}
         <div className="grid grid-cols-1 gap-y-10 gap-x-6 sm:grid-cols-2 lg:grid-cols-4">
-          {PRODUCTS.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
+          {loading &&
+            [...Array(4)].map((_, index) => (
+              <div
+                key={`shop-skeleton-${index}`}
+                className="h-[360px] rounded-2xl border border-gray-200 bg-white p-4"
+              >
+                <div className="h-[180px] animate-pulse rounded-xl bg-gray-100" />
+                <div className="mt-4 h-4 w-2/3 animate-pulse rounded bg-gray-100" />
+                <div className="mt-3 h-3 w-full animate-pulse rounded bg-gray-100" />
+                <div className="mt-6 h-10 w-full animate-pulse rounded-lg bg-gray-100" />
+              </div>
+            ))}
+
+          {!loading &&
+            section.products.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
         </div>
+
+        {!loading && section.products.length === 0 && (
+          <div className="mt-8 rounded-2xl border border-dashed border-gray-300 bg-white p-10 text-center">
+            <h3 className="text-lg font-bold text-gray-900">No products configured yet</h3>
+            <p className="mt-2 text-sm text-gray-500">
+              Add products from Django Admin under Shop By Products section to display cards here.
+            </p>
+          </div>
+        )}
 
         {/* Footer Link */}
         <div className="mt-12 text-center">
@@ -147,7 +130,7 @@ export default function ShopByProduct() {
             href="/products"
             className="inline-flex items-center text-[#EE2A24] font-semibold hover:underline group"
           >
-            View All Products
+            {section.view_all_text}
             <ArrowRight className="ml-2 w-4 h-4 transition-transform group-hover:translate-x-1" />
           </Link>
         </div>

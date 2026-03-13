@@ -1,86 +1,27 @@
 "use client";
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { ExternalLink, Zap, Package, Palette } from "lucide-react";
-import promo1 from "../../../public/promo/promo1.png";
-import promo2 from "../../../public/promo/promo2.png";
-import promo3 from "../../../public/promo/promo3.png";
-import promo4 from "../../../public/promo/promo4.png";
-import promo5 from "../../../public/promo/promo5.png";
-import promo6 from "../../../public/promo/promo6.png";
-// 1. Data Definitions
-const FEATURED_PRODUCTS = [
-  {
-    id: 1,
-    title: "Custom Branded Pens",
-    category: "Writing Instruments",
-    price: "0.89",
-    min: "100+",
-    image: promo1,
-  },
-  {
-    id: 2,
-    title: "Promotional Tote Bags",
-    category: "Bags & Accessories",
-    price: "2.25",
-    min: "50+",
-    image: promo2,
-  },
-  {
-    id: 3,
-    title: "Custom Coffee Mugs",
-    category: "Drinkware",
-    price: "4.50",
-    min: "35+",
-    image: promo3,
-  },
-  {
-    id: 4,
-    title: "Branded USB Drives",
-    category: "Technology",
-    price: "5.99",
-    min: "25+",
-    image: promo4,
-  },
-  {
-    id: 5,
-    title: "Logo T-Shirts",
-    category: "Apparel",
-    price: "8.15",
-    min: "50+",
-    image: promo5,
-  },
-  {
-    id: 6,
-    title: "Water Bottles",
-    category: "Drinkware",
-    price: "6.25",
-    min: "48+",
-    image: promo6,
-  },
-];
+import axios from "@/lib/axios";
 
-const CATEGORIES = [
-  "Apparel",
-  "Bags & Accessories",
-  "Drinkware",
-  "Writing Instruments",
-  "Technology",
-  "Office Supplies",
-  "Outdoor & Leisure",
-  "Health & Wellness",
-];
-
-// 2. Sub-Components
+// Sub-Components
 const ProductCard = ({ product }) => (
   <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden flex flex-col group">
     <div className="relative aspect-square overflow-hidden bg-gray-50">
-      <Image
-        src={product.image}
-        alt={product.title}
-        fill
-        className="object-cover transition-transform group-hover:scale-105"
-      />
+      {product.image_url ? (
+        <Image
+          src={product.image_url}
+          alt={product.title}
+          fill
+          className="object-cover transition-transform group-hover:scale-105"
+        />
+      ) : (
+        <div className="w-full h-full flex items-center justify-center bg-gray-100">
+          <span className="text-gray-400 text-sm font-medium text-center px-4">
+            {product.title}
+          </span>
+        </div>
+      )}
     </div>
     <div className="p-5 flex flex-col flex-grow">
       <span className="text-[10px] font-bold text-[#EE2A24] uppercase tracking-wider mb-1">
@@ -92,9 +33,7 @@ const ProductCard = ({ product }) => (
           <span className="block text-[#EE2A24] font-black text-xl">
             ${product.price}
           </span>
-          <span className="text-[10px] text-gray-400 font-medium">
-            per unit
-          </span>
+          <span className="text-[10px] text-gray-400 font-medium">per unit</span>
         </div>
         <div className="text-right">
           <span className="block text-gray-900 font-bold text-sm">
@@ -122,12 +61,34 @@ const CategoryBox = ({ name }) => (
   </a>
 );
 
-// 3. Main Page Component
 export default function PromotionalCatalog() {
+  const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [productsRes, categoriesRes] = await Promise.all([
+          axios.get("/products/promo-products/"),
+          axios.get("/products/promo-categories/"),
+        ]);
+        setProducts(productsRes.data);
+        setCategories(categoriesRes.data);
+      } catch (err) {
+        setError("Failed to load products. Please try again.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
   return (
     <main className="bg-white py-16">
       <div className="max-w-7xl mx-auto px-6">
-        {/* --- Header Section --- */}
+        {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-3xl font-black text-[#1e1e2d] mb-4">
             Promotional Products Catalog
@@ -147,7 +108,7 @@ export default function PromotionalCatalog() {
           </div>
         </div>
 
-        {/* --- Featured Items Grid --- */}
+        {/* Featured Items Grid */}
         <div className="flex justify-between items-center mb-8">
           <h2 className="text-xl font-extrabold text-[#1e1e2d]">
             Featured Promotional Items
@@ -157,27 +118,48 @@ export default function PromotionalCatalog() {
           </button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-20">
-          {FEATURED_PRODUCTS.map((p) => (
-            <ProductCard key={p.id} product={p} />
-          ))}
-        </div>
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl text-sm font-medium mb-8">
+            {error}
+          </div>
+        )}
 
-        {/* --- Categories Section --- */}
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-20">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="bg-white rounded-2xl border border-gray-100 overflow-hidden animate-pulse">
+                <div className="aspect-square bg-gray-100" />
+                <div className="p-5 space-y-3">
+                  <div className="h-3 bg-gray-100 rounded w-1/3" />
+                  <div className="h-5 bg-gray-100 rounded w-2/3" />
+                  <div className="h-10 bg-gray-100 rounded" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-20">
+            {products.map((p) => (
+              <ProductCard key={p.id} product={p} />
+            ))}
+          </div>
+        )}
+
+        {/* Categories Section */}
         <div className="bg-[#FFF8F8] -mx-6 px-6 py-20 rounded-[3rem] mb-20">
           <div className="max-w-7xl mx-auto">
             <h2 className="text-center font-black text-xl mb-12">
               Browse by Category
             </h2>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              {CATEGORIES.map((cat) => (
+              {categories.map((cat) => (
                 <CategoryBox key={cat} name={cat} />
               ))}
             </div>
           </div>
         </div>
 
-        {/* --- Why Choose Us Section --- */}
+        {/* Why Choose Us Section */}
         <div className="text-center mb-16">
           <h2 className="font-black text-xl mb-12">
             Why Choose Our Promotional Products?

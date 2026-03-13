@@ -1,17 +1,27 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   ChevronLeft,
   Info,
-  Upload,
   RotateCcw,
   Plus,
   Minus,
   Eye,
 } from "lucide-react";
 import Link from "next/link";
+import { useParams } from "next/navigation";
+import toast from "react-hot-toast";
+import axios from "@/lib/axios";
+import { addCartItem } from "@/lib/cart";
 
 export default function SignageConfigurator() {
+  const params = useParams();
+  const productId = params?.id;
+  const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [addingToCart, setAddingToCart] = useState(false);
+
   const [currentStep, setCurrentStep] = useState(1);
   const [config, setConfig] = useState({
     width: 8,
@@ -23,16 +33,102 @@ export default function SignageConfigurator() {
     quantity: 1,
   });
 
+  useEffect(() => {
+    const fetchProduct = async () => {
+      if (!productId) {
+        setError("Invalid product id.");
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        setError("");
+        const response = await axios.get(`/products/${productId}/`);
+        const productData = response.data;
+        setProduct(productData);
+        setConfig((prev) => ({
+          ...prev,
+          text: (productData.name || "CUSTOM SIGN").toUpperCase(),
+        }));
+      } catch {
+        setError("Unable to load product details. Please try again.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProduct();
+  }, [productId]);
+
   // Steps updated to 5
   const totalSteps = 5;
-  const basePrice = 53.0;
+  const basePrice = Number(product?.price || 53.0);
   const braillePrice = config.braille ? 8.0 : 0;
   const unitPrice = basePrice + braillePrice;
   const totalPrice = unitPrice * config.quantity;
 
+  const handleAddToCart = async () => {
+    if (!product?.id) {
+      toast.error("Product তথ্য লোড হয়নি। আবার চেষ্টা করুন।");
+      return;
+    }
+
+    try {
+      setAddingToCart(true);
+      await addCartItem({
+        product_id: product.id,
+        quantity: config.quantity,
+        customization_data: {
+          width: Number(config.width),
+          height: Number(config.height),
+          material: config.material,
+          color: config.color,
+          text: config.text,
+          braille: config.braille,
+        },
+      });
+      toast.success("Product cart-এ add হয়েছে।");
+    } catch (cartError) {
+      toast.error(cartError.response?.data?.error || "Cart-এ add করা যায়নি।");
+    } finally {
+      setAddingToCart(false);
+    }
+  };
+
   const nextStep = () =>
     setCurrentStep((prev) => Math.min(prev + 1, totalSteps));
   const prevStep = () => setCurrentStep((prev) => Math.max(prev - 1, 1));
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#F8F9FA] px-6 py-10">
+        <div className="mx-auto max-w-7xl">
+          <div className="h-8 w-52 animate-pulse rounded bg-gray-200" />
+          <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-12">
+            <div className="h-[500px] animate-pulse rounded-2xl bg-gray-200 lg:col-span-7" />
+            <div className="h-[500px] animate-pulse rounded-2xl bg-gray-200 lg:col-span-5" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-[#F8F9FA] px-6 py-10">
+        <div className="mx-auto max-w-3xl rounded-2xl border border-red-100 bg-red-50 p-6 text-center">
+          <p className="text-sm font-semibold text-red-700">{error}</p>
+          <Link
+            href="/products"
+            className="mt-4 inline-flex items-center gap-2 rounded-xl bg-[#EE2A24] px-5 py-3 text-sm font-bold text-white hover:bg-[#d6221c]"
+          >
+            <ChevronLeft size={14} /> Back to Products
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#F8F9FA] pb-20">
@@ -79,7 +175,7 @@ export default function SignageConfigurator() {
                 </div>
               )}
               <div className="absolute bottom-4 right-4 bg-black/20 text-white text-[10px] px-1.5 py-0.5 rounded font-bold">
-                {config.width}" × {config.height}"
+                {config.width}&quot; × {config.height}&quot;
               </div>
             </div>
 
@@ -116,19 +212,18 @@ export default function SignageConfigurator() {
           <div className="bg-white border border-gray-200 rounded-2xl shadow-sm flex flex-col h-full">
             <div className="p-8 border-b border-gray-100">
               <h1 className="text-2xl font-black text-[#1e1e2d] mb-1">
-                ADA Restroom Sign
+                {product?.name || "Custom Product"}
               </h1>
               <p className="text-sm text-gray-400 mb-6">
-                Configure your custom signage
+                {product?.description || "Configure your custom product"}
               </p>
 
               <div className="flex gap-2">
                 {[...Array(totalSteps)].map((_, i) => (
                   <div
                     key={i}
-                    className={`h-1 flex-1 rounded-full transition-all duration-500 ${
-                      currentStep - 1 >= i ? "bg-[#EE2A24]" : "bg-gray-100"
-                    }`}
+                    className={`h-1 flex-1 rounded-full transition-all duration-500 ${currentStep - 1 >= i ? "bg-[#EE2A24]" : "bg-gray-100"
+                      }`}
                   />
                 ))}
               </div>
@@ -189,11 +284,10 @@ export default function SignageConfigurator() {
                       <button
                         key={mat}
                         onClick={() => setConfig({ ...config, material: mat })}
-                        className={`p-3 text-sm font-bold border rounded-lg transition-all ${
-                          config.material === mat ?
-                            "border-[#EE2A24] bg-red-50 text-[#EE2A24]"
+                        className={`p-3 text-sm font-bold border rounded-lg transition-all ${config.material === mat ?
+                          "border-[#EE2A24] bg-red-50 text-[#EE2A24]"
                           : "border-gray-200 text-gray-500 hover:border-gray-300"
-                        }`}
+                          }`}
                       >
                         {mat}
                       </button>
@@ -212,11 +306,10 @@ export default function SignageConfigurator() {
                             key={color}
                             onClick={() => setConfig({ ...config, color })}
                             style={{ backgroundColor: color }}
-                            className={`w-10 h-10 rounded-lg border-2 transition-transform active:scale-90 ${
-                              config.color === color ?
-                                "border-[#EE2A24] ring-2 ring-red-100"
+                            className={`w-10 h-10 rounded-lg border-2 transition-transform active:scale-90 ${config.color === color ?
+                              "border-[#EE2A24] ring-2 ring-red-100"
                               : "border-white shadow-sm"
-                            }`}
+                              }`}
                           />
                         ),
                       )}
@@ -300,11 +393,10 @@ export default function SignageConfigurator() {
                     onClick={() =>
                       setConfig({ ...config, braille: !config.braille })
                     }
-                    className={`flex items-center justify-between p-6 rounded-2xl border-2 transition-all cursor-pointer ${
-                      config.braille ?
-                        "border-[#EE2A24] bg-red-50/30"
+                    className={`flex items-center justify-between p-6 rounded-2xl border-2 transition-all cursor-pointer ${config.braille ?
+                      "border-[#EE2A24] bg-red-50/30"
                       : "border-gray-100 bg-gray-50 hover:border-gray-200"
-                    }`}
+                      }`}
                   >
                     <div className="flex flex-col">
                       <span className="font-bold text-gray-900">
@@ -364,14 +456,11 @@ export default function SignageConfigurator() {
                   </button>
                 )}
                 <button
-                  onClick={
-                    currentStep === totalSteps ?
-                      () => alert("Added to cart!")
-                    : nextStep
-                  }
+                  onClick={currentStep === totalSteps ? handleAddToCart : nextStep}
+                  disabled={addingToCart}
                   className="flex-1 bg-[#EE2A24] text-white py-4 rounded-xl font-bold shadow-xl shadow-red-100 hover:bg-[#d6221c] transition-all active:scale-[0.98]"
                 >
-                  {currentStep === totalSteps ? "Add to Cart" : "Continue"}
+                  {currentStep === totalSteps ? (addingToCart ? "Adding..." : "Add to Cart") : "Continue"}
                 </button>
               </div>
             </div>

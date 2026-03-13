@@ -1,6 +1,7 @@
 import axios from 'axios';
 
-const apiURL = (process.env.NEXT_PUBLIC_BACKEND_URL || 'http://127.0.0.1:8000/api').replace(/\/$/, '');
+const rawBackendUrl = (process.env.NEXT_PUBLIC_BACKEND_URL || 'http://127.0.0.1:8000/api').replace(/\/$/, '');
+const apiURL = rawBackendUrl.endsWith('/api') ? rawBackendUrl : `${rawBackendUrl}/api`;
 
 const axiosInstance = axios.create({
   baseURL: apiURL,
@@ -29,9 +30,15 @@ axiosInstance.interceptors.response.use(
     return response;
   },
   error => {
-    if (error.response && error.response.status === 401) {
-      // redirect to login page
-      window.location = '/login';
+    if (error.response && error.response.status === 401 && typeof window !== 'undefined') {
+      const requestUrl = error.config?.url || '';
+      const isAuthRequest = /\/auth\/(login|register|forgot-password|reset-password)\/?$/.test(requestUrl);
+      const isAlreadyOnAuthPage = ['/login', '/register', '/forgot-password', '/reset-password'].includes(window.location.pathname);
+
+      // For protected APIs, send users to login. Keep auth-page errors visible instead of forcing redirects.
+      if (!isAuthRequest && !isAlreadyOnAuthPage) {
+        window.location.href = '/login';
+      }
     }
     return Promise.reject(error);
   }

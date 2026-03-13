@@ -16,41 +16,68 @@ import {
   User,
 } from "lucide-react";
 import React from "react";
+import { useEffect, useMemo, useState } from "react";
 import Ad from "../components/shared/Ad";
 import Navbar from "../components/shared/Navbar";
 import Footer from "../components/shared/Footer";
 import Link from "next/link";
-import { usePathname } from "next/navigation"; // Import to detect active route
+import { usePathname, useRouter } from "next/navigation"; // Import to detect active route
+import axios from "@/lib/axios";
 
 const DashboardLayout = ({ children }) => {
   const pathname = usePathname(); // Get current URL path
+  const router = useRouter();
+  const [dashboardData, setDashboardData] = useState(null);
 
-  const stats = [
-    {
-      label: "Total Orders",
-      value: "24",
-      icon: <Box className="text-white" />,
-      bgColor: "bg-blue-500",
-    },
-    {
-      label: "Total Spent",
-      value: "$8,450",
-      icon: <CreditCard className="text-white" />,
-      bgColor: "bg-emerald-500",
-    },
-    {
-      label: "Saved Designs",
-      value: "12",
-      icon: <Heart className="text-white" />,
-      bgColor: "bg-purple-500",
-    },
-    {
-      label: "Active Projects",
-      value: "3",
-      icon: <Settings className="text-white" />,
-      bgColor: "bg-orange-500",
-    },
-  ];
+  useEffect(() => {
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      router.push("/login");
+      return;
+    }
+
+    const fetchDashboardData = async () => {
+      try {
+        const response = await axios.get("/profile/dashboard/");
+        setDashboardData(response.data);
+      } catch {
+        setDashboardData(null);
+      }
+    };
+
+    fetchDashboardData();
+  }, [router]);
+
+  const profile = dashboardData?.profile;
+  const stats = useMemo(
+    () => [
+      {
+        label: "Total Orders",
+        value: dashboardData?.stats?.total_orders ?? "0",
+        icon: <Box className="text-white" />,
+        bgColor: "bg-blue-500",
+      },
+      {
+        label: "Total Spent",
+        value: `$${dashboardData?.stats?.total_spent ?? "0.00"}`,
+        icon: <CreditCard className="text-white" />,
+        bgColor: "bg-emerald-500",
+      },
+      {
+        label: "Saved Designs",
+        value: dashboardData?.stats?.saved_designs ?? "0",
+        icon: <Heart className="text-white" />,
+        bgColor: "bg-purple-500",
+      },
+      {
+        label: "Active Projects",
+        value: dashboardData?.stats?.active_projects ?? "0",
+        icon: <Settings className="text-white" />,
+        bgColor: "bg-orange-500",
+      },
+    ],
+    [dashboardData]
+  );
 
   const navItems = [
     { name: "Overview", path: "/dashboard", icon: <User size={16} /> },
@@ -83,8 +110,8 @@ const DashboardLayout = ({ children }) => {
               <div className="relative">
                 <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-gray-200 overflow-hidden border-4 border-white shadow-md">
                   <img
-                    src="/api/placeholder/150/150"
-                    alt="Avatar"
+                    src={profile?.photo_url || "/api/placeholder/150/150"}
+                    alt={profile?.full_name || "Avatar"}
                     className="w-full h-full object-cover"
                   />
                 </div>
@@ -93,19 +120,19 @@ const DashboardLayout = ({ children }) => {
                 </button>
               </div>
               <div className="space-y-2">
-                <h2 className="text-xl font-black">John Doe</h2>
+                <h2 className="text-xl font-black">{profile?.full_name || "User"}</h2>
                 <p className="text-gray-500 font-medium text-sm md:text-base">
-                  Acme Corporation
+                  {profile?.company_name || "No company added"}
                 </p>
                 <div className="flex flex-col md:flex-row flex-wrap gap-2 md:gap-4 text-sm text-gray-500">
                   <span className="flex items-center justify-center md:justify-start gap-1.5">
-                    <Mail size={14} /> john.doe@company.com
+                    <Mail size={14} /> {profile?.email || "No email"}
                   </span>
                   <span className="flex items-center justify-center md:justify-start gap-1.5">
-                    <Phone size={14} /> +1 (555) 123-4567
+                    <Phone size={14} /> {profile?.phone || "No phone"}
                   </span>
                   <span className="flex items-center justify-center md:justify-start gap-1.5">
-                    <MapPin size={14} /> New York, NY
+                    <MapPin size={14} /> {[profile?.city, profile?.state].filter(Boolean).join(", ") || "No location"}
                   </span>
                 </div>
               </div>
@@ -152,17 +179,16 @@ const DashboardLayout = ({ children }) => {
                 const isActive =
                   item.path === "/dashboard" ?
                     pathname === "/dashboard"
-                  : pathname.startsWith(item.path);
+                    : pathname.startsWith(item.path);
 
                 return (
                   <Link
                     href={item.path}
                     key={item.name}
-                    className={`px-4 py-4 text-sm font-bold transition-colors border-b-2 whitespace-nowrap ${
-                      isActive ?
+                    className={`px-4 py-4 text-sm font-bold transition-colors border-b-2 whitespace-nowrap ${isActive ?
                         "border-blue-600 text-blue-600"
-                      : "border-transparent text-gray-400 hover:text-gray-600"
-                    }`}
+                        : "border-transparent text-gray-400 hover:text-gray-600"
+                      }`}
                   >
                     <span className="flex items-center gap-2">
                       {item.icon}

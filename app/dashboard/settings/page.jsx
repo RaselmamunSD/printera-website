@@ -1,8 +1,37 @@
+"use client";
 import React from "react";
+import { useEffect, useState } from "react";
 import { Bell, ShieldCheck, User } from "lucide-react";
 import Link from "next/link";
+import axios from "@/lib/axios";
 
 const SettingsView = () => {
+  const [profile, setProfile] = useState(null);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const response = await axios.get("/profile/me/");
+        setProfile(response.data);
+      } catch {
+        setProfile(null);
+      }
+    };
+
+    fetchProfile();
+  }, []);
+
+  const toggleEmailNotifications = async () => {
+    if (!profile) return;
+    const nextValue = !profile.email_notifications;
+    setProfile({ ...profile, email_notifications: nextValue });
+    try {
+      await axios.patch("/profile/me/", { email_notifications: nextValue });
+    } catch {
+      setProfile(profile);
+    }
+  };
+
   return (
     <div className="space-y-8 animate-in fade-in duration-500 p-6">
       {/* 1. ACCOUNT INFORMATION SECTION */}
@@ -16,33 +45,31 @@ const SettingsView = () => {
               <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">
                 Full Name
               </p>
-              <p className="font-bold text-[#1e1e2d]">John Doe</p>
+              <p className="font-bold text-[#1e1e2d]">{profile?.full_name || "Not provided"}</p>
             </div>
             <div>
               <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">
                 Email
               </p>
-              <p className="font-bold text-[#1e1e2d]">john.doe@company.com</p>
+              <p className="font-bold text-[#1e1e2d]">{profile?.email || "Not provided"}</p>
             </div>
             <div>
               <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">
                 Phone
               </p>
-              <p className="font-bold text-[#1e1e2d]">+1 (555) 123-4567</p>
+              <p className="font-bold text-[#1e1e2d]">{profile?.phone || "Not provided"}</p>
             </div>
             <div>
               <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">
                 Company
               </p>
-              <p className="font-bold text-[#1e1e2d]">Acme Corporation</p>
+              <p className="font-bold text-[#1e1e2d]">{profile?.company_name || "Not provided"}</p>
             </div>
             <div className="md:col-span-2">
               <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">
                 Address
               </p>
-              <p className="font-bold text-[#1e1e2d]">
-                123 Business Ave, New York, NY 10001
-              </p>
+              <p className="font-bold text-[#1e1e2d]">{[profile?.address, profile?.city, profile?.state, profile?.postal_code].filter(Boolean).join(", ") || "Not provided"}</p>
             </div>
           </div>
         </div>
@@ -69,7 +96,7 @@ const SettingsView = () => {
           </div>
           {/* Custom Toggle Switch */}
           <label className="relative inline-flex items-center cursor-pointer">
-            <input type="checkbox" className="sr-only peer" defaultChecked />
+            <input type="checkbox" className="sr-only peer" checked={Boolean(profile?.email_notifications)} onChange={toggleEmailNotifications} />
             <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
           </label>
         </div>

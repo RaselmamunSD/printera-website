@@ -1,41 +1,35 @@
+"use client";
 import React from "react";
+import { useEffect, useState } from "react";
 import { ExternalLink } from "lucide-react";
+import axios from "@/lib/axios";
 
 const OrderHistory = () => {
-  const orders = [
-    {
-      id: "ORD-2024-001",
-      date: "2024-02-05",
-      items: 3,
-      total: "$450.00",
-      status: "Delivered",
-      statusClass: "bg-emerald-50 text-emerald-600",
-    },
-    {
-      id: "ORD-2024-002",
-      date: "2024-02-01",
-      items: 5,
-      total: "$850.00",
-      status: "In Production",
-      statusClass: "bg-amber-50 text-amber-600",
-    },
-    {
-      id: "ORD-2024-003",
-      date: "2024-01-28",
-      items: 2,
-      total: "$320.00",
-      status: "Shipped",
-      statusClass: "bg-blue-50 text-blue-600",
-    },
-    {
-      id: "ORD-2024-004",
-      date: "2024-01-20",
-      items: 8,
-      total: "$1200.00",
-      status: "Delivered",
-      statusClass: "bg-emerald-50 text-emerald-600",
-    },
-  ];
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        const response = await axios.get("/bookings/");
+        setOrders(Array.isArray(response.data) ? response.data : []);
+      } catch {
+        setOrders([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOrders();
+  }, []);
+
+  const getStatusClass = (status) => ({
+    received: "bg-slate-50 text-slate-600",
+    production: "bg-amber-50 text-amber-600",
+    shipped: "bg-blue-50 text-blue-600",
+    delivered: "bg-emerald-50 text-emerald-600",
+    cancelled: "bg-red-50 text-red-600",
+  }[status] || "bg-slate-50 text-slate-600");
 
   return (
     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
@@ -44,7 +38,13 @@ const OrderHistory = () => {
       </div>
 
       {/* DESKTOP TABLE VIEW */}
-      <div className="hidden md:block overflow-x-auto">
+      {loading ? (
+        <div className="p-8 space-y-4">
+          {[...Array(4)].map((_, index) => <div key={index} className="h-14 animate-pulse rounded-xl bg-gray-100" />)}
+        </div>
+      ) : orders.length === 0 ? (
+        <div className="p-8 text-center text-sm font-medium text-gray-400">No order history yet.</div>
+      ) : <div className="hidden md:block overflow-x-auto">
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="bg-gray-50/50">
@@ -75,22 +75,22 @@ const OrderHistory = () => {
                 className="hover:bg-gray-50/50 transition-colors group"
               >
                 <td className="px-8 py-5 text-sm font-bold text-[#1e1e2d]">
-                  {order.id}
+                  {order.order_number || `ORD-${order.id}`}
                 </td>
                 <td className="px-8 py-5 text-sm font-medium text-gray-500">
-                  {order.date}
+                  {new Date(order.created_at).toLocaleDateString()}
                 </td>
                 <td className="px-8 py-5 text-sm font-medium text-gray-500 text-center">
-                  {order.items}
+                  {order.item_count}
                 </td>
                 <td className="px-8 py-5 text-sm font-black text-[#1e1e2d]">
-                  {order.total}
+                  ${order.total_amount}
                 </td>
                 <td className="px-8 py-5">
                   <span
-                    className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-tight ${order.statusClass}`}
+                    className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-tight ${getStatusClass(order.status)}`}
                   >
-                    {order.status}
+                    {order.status_display || order.status}
                   </span>
                 </td>
                 <td className="px-8 py-5 text-right">
@@ -102,10 +102,10 @@ const OrderHistory = () => {
             ))}
           </tbody>
         </table>
-      </div>
+      </div>}
 
       {/* MOBILE CARD VIEW */}
-      <div className="md:hidden divide-y divide-gray-100">
+      {!loading && orders.length > 0 && <div className="md:hidden divide-y divide-gray-100">
         {orders.map((order) => (
           <div key={order.id} className="p-6 space-y-4">
             <div className="flex justify-between items-start">
@@ -116,9 +116,9 @@ const OrderHistory = () => {
                 <p className="font-black text-[#1e1e2d]">{order.id}</p>
               </div>
               <span
-                className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-tight ${order.statusClass}`}
+                className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-tight ${getStatusClass(order.status)}`}
               >
-                {order.status}
+                {order.status_display || order.status}
               </span>
             </div>
 
@@ -127,15 +127,13 @@ const OrderHistory = () => {
                 <p className="text-[10px] font-bold text-gray-400 uppercase mb-1">
                   Date
                 </p>
-                <p className="text-sm font-medium">{order.date}</p>
+                <p className="text-sm font-medium">{new Date(order.created_at).toLocaleDateString()}</p>
               </div>
               <div>
                 <p className="text-[10px] font-bold text-gray-400 uppercase mb-1">
                   Total
                 </p>
-                <p className="text-sm font-black text-[#1e1e2d]">
-                  {order.total}
-                </p>
+                <p className="text-sm font-black text-[#1e1e2d]">${order.total_amount}</p>
               </div>
             </div>
 
@@ -144,7 +142,7 @@ const OrderHistory = () => {
             </button>
           </div>
         ))}
-      </div>
+      </div>}
     </div>
   );
 };
