@@ -2,9 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
 
 export default function GoogleCallbackPage() {
     const router = useRouter();
+    const { login } = useAuth();
     const [error, setError] = useState("");
 
     useEffect(() => {
@@ -24,15 +26,26 @@ export default function GoogleCallbackPage() {
             return;
         }
 
+        let parsedUser = null;
+        if (user) {
+            try {
+                parsedUser = JSON.parse(decodeURIComponent(user));
+            } catch {
+                try {
+                    parsedUser = JSON.parse(user);
+                } catch {
+                    parsedUser = user;
+                }
+            }
+        }
+
         try {
-            localStorage.setItem("access_token", access);
-            localStorage.setItem("refresh_token", refresh);
-            localStorage.setItem("user", user);
+            login({ access, refresh, user: parsedUser });
             router.replace("/");
         } catch {
             setError("Unable to complete Google login. Please try again.");
         }
-    }, [router]);
+    }, [login, router]);
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-white px-6">

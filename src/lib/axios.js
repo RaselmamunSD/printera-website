@@ -30,15 +30,9 @@ axiosInstance.interceptors.response.use(
     return response;
   },
   error => {
-    if (error.response && error.response.status === 401 && typeof window !== 'undefined') {
-      const requestUrl = error.config?.url || '';
-      const isAuthRequest = /\/auth\/(login|register|forgot-password|reset-password)\/?$/.test(requestUrl);
-      const isAlreadyOnAuthPage = ['/login', '/register', '/forgot-password', '/reset-password'].includes(window.location.pathname);
-
-      // For protected APIs, send users to login. Keep auth-page errors visible instead of forcing redirects.
-      if (!isAuthRequest && !isAlreadyOnAuthPage) {
-        window.location.href = '/login';
-      }
+    if (error.response?.status === 401) {
+      localStorage.removeItem("access_token");
+      localStorage.removeItem("refresh_token");
     }
     return Promise.reject(error);
   }

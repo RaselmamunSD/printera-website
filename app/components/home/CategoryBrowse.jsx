@@ -5,6 +5,7 @@ import img1 from "../../../public/ADA Signage.png";
 import img2 from "../../../public/Office Nameplates.png";
 import img3 from "../../../public/Banners & Displays.png";
 import img4 from "../../../public/Custom Engraving.png";
+import Link from "next/link";
 // 1. Data Structure for easy maintenance
 const CATEGORIES = [
   {
@@ -59,13 +60,13 @@ const CategoryCard = ({ category }) => {
         </p>
 
         {/* Button */}
-        <a
-          href={category.href}
+        <Link
+          href={"/products"}
           className="inline-flex items-center justify-center gap-2 w-full py-3 px-4 bg-[#EE2A24] text-white font-semibold rounded-lg transition-colors duration-200 hover:bg-[#D1221D]"
         >
           Explore
           <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
-        </a>
+        </Link>
       </div>
     </div>
   );
@@ -76,10 +77,8 @@ export default function CategoryBrowse() {
     <section className="py-16 px-4 max-w-7xl mx-auto">
       {/* Header Section */}
       <div className="text-center mb-12">
-        <h2 className="title">Browse by Category</h2>
-        <p className="text-gray-500 text-lg">
-          Select a category to explore our customizable products
-        </p>
+        <h2 className="title">Browse Our Products</h2>
+
       </div>
 
       {/* Grid Layout: 1 col mobile, 2 col tablet, 4 col desktop */}

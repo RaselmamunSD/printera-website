@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { ExternalLink, Zap, Package, Palette } from "lucide-react";
 import axios from "@/lib/axios";
+import Link from "next/link";
 
 // Sub-Components
 const ProductCard = ({ product }) => (
@@ -42,9 +43,9 @@ const ProductCard = ({ product }) => (
           <span className="text-[10px] text-gray-400 font-medium">minimum</span>
         </div>
       </div>
-      <button className="w-full bg-[#EE2A24] text-white py-3 rounded-lg font-bold text-sm transition-colors hover:bg-[#d6221c]">
+      <Link href={"/request-quote"} className="w-full bg-[#EE2A24] text-white py-3 rounded-lg font-bold text-sm transition-colors hover:bg-[#d6221c] flex items-center justify-center">
         Request Quote
-      </button>
+      </Link>
     </div>
   </div>
 );

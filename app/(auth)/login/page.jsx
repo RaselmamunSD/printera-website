@@ -6,9 +6,11 @@ import { useRouter } from "next/navigation";
 import { Eye, EyeOff, Mail, Lock, User } from "lucide-react";
 import google from "../../../public/auth/google.png";
 import axios from "@/lib/axios";
+import { useAuth } from "@/context/AuthContext";
 
 export default function Login() {
   const router = useRouter();
+  const { login } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -29,9 +31,11 @@ export default function Login() {
       });
 
       if (response.data.access) {
-        localStorage.setItem("access_token", response.data.access);
-        localStorage.setItem("refresh_token", response.data.refresh);
-        localStorage.setItem("user", JSON.stringify(response.data.user));
+        login({
+          access: response.data.access,
+          refresh: response.data.refresh,
+          user: response.data.user,
+        });
         router.push("/");
       }
     } catch (err) {

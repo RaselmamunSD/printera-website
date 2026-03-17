@@ -6,6 +6,8 @@ import Footer from "./components/shared/Footer";
 import Logout from "./components/shared/Logout";
 import Link from "next/link";
 import { Toaster } from "react-hot-toast";
+import Providers from "./providers";
+import { AuthProvider } from "@/context/AuthContext";
 
 const sora = Sora({
   variable: "--font-sora",
@@ -22,8 +24,11 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body className={`${sora.className} antialiased `}>
 
-        {children}
-        <Toaster />
+        <AuthProvider>
+          {children}
+          <Toaster />
+        </AuthProvider>
+
       </body>
     </html>
   );

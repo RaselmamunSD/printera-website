@@ -16,6 +16,7 @@ import {
 import toast from "react-hot-toast";
 
 import axios from "@/lib/axios";
+import { useAuth } from "@/context/AuthContext";
 import {
   clearCart,
   fetchCart,
@@ -66,6 +67,7 @@ export default function CheckoutFlow() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const checkoutStatus = searchParams.get("checkout");
+  const { isAuthenticated, loading: authLoading } = useAuth();
 
   const [step, setStep] = useState(0);
   const [deliveryMethod, setDeliveryMethod] = useState("pickup");
@@ -89,8 +91,17 @@ export default function CheckoutFlow() {
   }, [deliveryMethod]);
 
   useEffect(() => {
+    if (authLoading || !isAuthenticated) {
+      return;
+    }
     loadCart(deliveryMethod);
-  }, [deliveryMethod, loadCart]);
+  }, [authLoading, deliveryMethod, isAuthenticated, loadCart]);
+
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      router.replace("/login");
+    }
+  }, [authLoading, isAuthenticated, router]);
 
   useEffect(() => {
     if (checkoutStatus === "success") {
@@ -686,6 +697,20 @@ export default function CheckoutFlow() {
       </div>
     </div>
   );
+
+  if (authLoading) {
+    return (
+      <main className="min-h-screen bg-[#F8FAFC] px-6 py-16">
+        <div className="mx-auto max-w-3xl text-center text-sm font-semibold text-gray-500">
+          Checking authentication...
+        </div>
+      </main>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return null;
+  }
 
   return (
     <main className="min-h-screen bg-[#F8FAFC] px-6 py-16">
