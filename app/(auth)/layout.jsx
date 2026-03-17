@@ -30,6 +30,7 @@ const AuthLayout = ({ children }) => {
         </div>
       </div>
       {children}
+      <p>as</p>
     </div>
   );
 };
