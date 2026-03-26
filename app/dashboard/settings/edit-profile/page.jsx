@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Save } from "lucide-react";
 import axios from "@/lib/axios";
 
@@ -16,8 +16,10 @@ const EditProfileForm = () => {
     state: "",
     postal_code: "",
   });
+  const [photoFile, setPhotoFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
+  const photoObjectUrlRef = useRef(null);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -44,15 +46,72 @@ const EditProfileForm = () => {
 
   const handleChange = (field) => (e) => setFormData((prev) => ({ ...prev, [field]: e.target.value }));
 
+  const handlePhotoChange = (e) => {
+    const file = e.target.files?.[0] || null;
+    setPhotoFile(file);
+
+    // Preview the chosen image immediately in the dashboard header.
+    if (photoObjectUrlRef.current) {
+      URL.revokeObjectURL(photoObjectUrlRef.current);
+      photoObjectUrlRef.current = null;
+    }
+    if (file) {
+      const objectUrl = URL.createObjectURL(file);
+      photoObjectUrlRef.current = objectUrl;
+      window.dispatchEvent(
+        new CustomEvent("profile_photo_preview", {
+          detail: { url: objectUrl },
+        })
+      );
+    } else {
+      window.dispatchEvent(new CustomEvent("profile_photo_preview", { detail: { url: null } }));
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      if (photoObjectUrlRef.current) {
+        URL.revokeObjectURL(photoObjectUrlRef.current);
+      }
+    };
+  }, []);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setMessage("");
     try {
-      await axios.patch("/profile/me/", formData);
+      if (photoFile) {
+        const payload = new FormData();
+        payload.append("photo", photoFile);
+          // Only send photo (and any non-empty fields) so DRF validation doesn't fail
+          // due to empty strings in optional inputs.
+          Object.entries(formData).forEach(([key, value]) => {
+            if (value !== null && value !== undefined && value !== "") {
+              payload.append(key, value);
+            }
+          });
+
+        const res = await axios.patch("/profile/me/", payload);
+        const serverPhotoUrl = res?.data?.photo_url || null;
+        // If server returns photo_url, update header immediately to avoid temporary drop.
+        if (serverPhotoUrl) {
+          window.dispatchEvent(
+            new CustomEvent("profile_photo_preview", {
+              detail: { url: serverPhotoUrl },
+            })
+          );
+        }
+      } else {
+        await axios.patch("/profile/me/", formData);
+      }
       setMessage("Profile updated successfully.");
-    } catch {
-      setMessage("Failed to update profile.");
+
+      // Trigger layout to re-fetch dashboard profile (and clear preview override).
+      window.dispatchEvent(new CustomEvent("profile_photo_updated"));
+    } catch (err) {
+      const details = err?.response?.data;
+      setMessage(details ? `Failed: ${JSON.stringify(details)}` : "Failed to update profile.");
     } finally {
       setLoading(false);
     }
@@ -69,6 +128,22 @@ const EditProfileForm = () => {
 
       <form className="p-8 space-y-6" onSubmit={handleSubmit}>
         {message && <div className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm font-medium text-gray-600">{message}</div>}
+
+        {/* Photo upload */}
+        <div className="space-y-2">
+          <label className="text-xs font-bold text-gray-500 uppercase tracking-wider" htmlFor="photo">
+            Profile Photo
+          </label>
+          <input
+            id="photo"
+            type="file"
+            accept="image/*"
+            onChange={handlePhotoChange}
+            className="block w-full text-sm text-gray-600 file:mr-4 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+          />
+          <p className="text-xs text-gray-500">Choose an image to update your profile picture.</p>
+        </div>
+
         {/* Name Row */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-2">

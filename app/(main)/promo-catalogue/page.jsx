@@ -75,8 +75,9 @@ export default function PromotionalCatalog() {
           axios.get("/products/promo-products/"),
           axios.get("/products/promo-categories/"),
         ]);
+        const uniqueCategories = [...new Set(categoriesRes.data)];
         setProducts(productsRes.data);
-        setCategories(categoriesRes.data);
+        setCategories(uniqueCategories);
       } catch (err) {
         setError("Failed to load products. Please try again.");
       } finally {

@@ -61,7 +61,8 @@ export default function Register() {
   const handleGoogleLogin = () => {
     const apiBaseUrl = (process.env.NEXT_PUBLIC_BACKEND_URL || "http://127.0.0.1:8000/api").replace(/\/$/, "");
     const backendOrigin = apiBaseUrl.replace(/\/api$/, "");
-    window.location.href = `${backendOrigin}/api/auth/google/`;
+    const frontendOrigin = window.location.origin;
+    window.location.href = `${backendOrigin}/api/auth/google/?frontend=${encodeURIComponent(frontendOrigin)}`;
   };
 
   return (

@@ -22,7 +22,7 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className={`${sora.className} antialiased `}>
+      <body suppressHydrationWarning className={`${sora.className} antialiased`}>
 
         <AuthProvider>
           {children}

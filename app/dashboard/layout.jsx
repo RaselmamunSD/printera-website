@@ -16,7 +16,7 @@ import {
   User,
 } from "lucide-react";
 import React from "react";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Ad from "../components/shared/Ad";
 import Navbar from "../components/shared/Navbar";
 import Footer from "../components/shared/Footer";
@@ -26,13 +26,13 @@ import axios from "@/lib/axios";
 import { useAuth } from "@/context/AuthContext";
 import Providers from "app/providers";
 import ProtectedRoute from "routes/ProtectedRoute";
-import Image from "next/image";
 
 
 const DashboardLayout = ({ children }) => {
   const pathname = usePathname(); // Get current URL path
   const router = useRouter();
   const [dashboardData, setDashboardData] = useState(null);
+  const [photoOverrideUrl, setPhotoOverrideUrl] = useState(null);
   const { isAuthenticated, loading: authLoading } = useAuth();
   const { logout } = useAuth();
   useEffect(() => {
@@ -41,22 +41,39 @@ const DashboardLayout = ({ children }) => {
     }
   }, [authLoading, isAuthenticated, router]);
 
-  useEffect(() => {
-    if (authLoading || !isAuthenticated) {
-      return;
+  const fetchDashboardData = useCallback(async () => {
+    if (authLoading || !isAuthenticated) return;
+    try {
+      const response = await axios.get("/profile/dashboard/");
+      setDashboardData(response.data);
+    } catch {
+      setDashboardData(null);
     }
+  }, [authLoading, isAuthenticated]);
 
-    const fetchDashboardData = async () => {
-      try {
-        const response = await axios.get("/profile/dashboard/");
-        setDashboardData(response.data);
-      } catch {
-        setDashboardData(null);
-      }
+  useEffect(() => {
+    fetchDashboardData();
+  }, [fetchDashboardData]);
+
+  // Keep dashboard header avatar in sync with edit-profile uploads.
+  useEffect(() => {
+    const onPreview = (e) => {
+      setPhotoOverrideUrl(e?.detail?.url || null);
+    };
+    const onUpdated = async () => {
+      // Don't clear the override until we re-fetch dashboard data,
+      // otherwise avatar can temporarily drop to placeholder.
+      await fetchDashboardData();
+      setPhotoOverrideUrl(null);
     };
 
-    fetchDashboardData();
-  }, [authLoading, isAuthenticated]);
+    window.addEventListener("profile_photo_preview", onPreview);
+    window.addEventListener("profile_photo_updated", onUpdated);
+    return () => {
+      window.removeEventListener("profile_photo_preview", onPreview);
+      window.removeEventListener("profile_photo_updated", onUpdated);
+    };
+  }, [fetchDashboardData]);
 
   const profile = dashboardData?.profile;
   const stats = useMemo(
@@ -132,17 +149,32 @@ const DashboardLayout = ({ children }) => {
               <div className="flex flex-col md:flex-row items-center gap-6 text-center md:text-left">
                 <div className="relative">
                   <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-gray-200 overflow-hidden border-4 border-white shadow-md">
-                    <Image
-                      src={profile?.photo_url || "/api/placeholder/150/150"}
-                      alt={profile?.full_name || "Avatar"}
-                      className="w-full h-full object-cover"
-                      width={96}
-                      height={96}
-                    />
+                    {photoOverrideUrl || profile?.photo_url ? (
+                      // Use plain `<img>` to avoid `next/image` restrictions with private IPs.
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={photoOverrideUrl || profile?.photo_url}
+                        alt={profile?.full_name || "Avatar"}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-sm font-bold text-gray-700">
+                        {(profile?.full_name || "U")
+                          .split(" ")
+                          .filter(Boolean)
+                          .slice(0, 2)
+                          .map((p) => p[0]?.toUpperCase())
+                          .join("")}
+                      </div>
+                    )}
                   </div>
-                  <button className="absolute bottom-0 right-0 bg-blue-600 p-1.5 rounded-full border-2 border-white text-white hover:bg-blue-700 transition-colors">
+                  <Link
+                    href={"/dashboard/settings/edit-profile"}
+                    className="absolute bottom-0 right-0 bg-blue-600 p-1.5 rounded-full border-2 border-white text-white hover:bg-blue-700 transition-colors"
+                    aria-label="Edit profile photo"
+                  >
                     <Camera size={14} />
-                  </button>
+                  </Link>
                 </div>
                 <div className="space-y-2">
                   <h2 className="text-xl font-black">{profile?.full_name || "User"}</h2>
