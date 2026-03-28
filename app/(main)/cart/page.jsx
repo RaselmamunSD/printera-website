@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import {
   AlertTriangle,
   CheckCircle2,
@@ -65,8 +65,7 @@ const FormField = ({
 
 export default function CheckoutFlow() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const checkoutStatus = searchParams.get("checkout");
+  const [checkoutStatus, setCheckoutStatus] = useState(null);
   const { isAuthenticated, loading: authLoading } = useAuth();
 
   const [step, setStep] = useState(0);
@@ -102,6 +101,13 @@ export default function CheckoutFlow() {
       router.replace("/login");
     }
   }, [authLoading, isAuthenticated, router]);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      setCheckoutStatus(params.get("checkout"));
+    }
+  }, []);
 
   useEffect(() => {
     if (checkoutStatus === "success") {
