@@ -1,17 +1,18 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import { ArrowLeft, ArrowRight, Star } from "lucide-react";
+import axios from "@/lib/axios";
 
 const FALLBACK_AVATAR_IMAGE = "/user.png";
 
-const TESTIMONIALS = [
+const FALLBACK_TESTIMONIALS = [
   {
     id: 1,
     name: "Rahat Ahmed",
     role: "Owner",
     company: "Retail Shop",
-    image: "/avatars/rahat.jpg",
+    image: "/users.png",
     rating: 5,
     content:
       "Their 3D plastic letters completely transformed my shop's storefront! The quality is amazing, and the letters look very premium. Highly recommended!",
@@ -21,7 +22,7 @@ const TESTIMONIALS = [
     name: "Samiul Islam",
     role: "Manager",
     company: "Restaurant",
-    image: "/avatars/samiul.jpg",
+    image: "/users.png",
     rating: 5,
     content:
       "I was worried about the rain and sun, but the signage they provided is truly weather-resistant. Even after a year, the colors look brand new.",
@@ -31,7 +32,7 @@ const TESTIMONIALS = [
     name: "Tanvir Hassan",
     role: "CEO & Founder",
     company: "Startup",
-    image: "/avatars/tanvir.jpg",
+    image: "/users.png",
     rating: 4,
     content:
       "The laser-cutting on the acrylic letters was incredibly precise. They followed my brand's font exactly. Great attention to detail!",
@@ -57,11 +58,10 @@ const TestimonialCard = ({ testimonial }) => (
     {/* Header: Avatar & Info */}
     <div className="flex items-center gap-4 mb-6">
       <div className="relative w-14 h-14 rounded-full overflow-hidden border-2 border-gray-100">
-        <Image
+        <img
           src={testimonial.image || FALLBACK_AVATAR_IMAGE}
           alt={testimonial.name}
-          fill
-          className="object-cover"
+          className="w-full h-full object-cover"
           onError={(event) => {
             event.currentTarget.src = FALLBACK_AVATAR_IMAGE;
           }}
@@ -94,7 +94,40 @@ const TestimonialCard = ({ testimonial }) => (
 );
 
 export default function TestimonialSlider() {
+  const [testimonials, setTestimonials] = useState(FALLBACK_TESTIMONIALS);
   const [activePage, setActivePage] = useState(0);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchTestimonials = async () => {
+      try {
+        const response = await axios.get("/testimonials/");
+        if (Array.isArray(response.data) && response.data.length > 0) {
+          const mapped = response.data
+            .filter((item) => item.is_active !== false)
+            .map((item) => ({
+              id: item.id,
+              name: item.name,
+              role: item.role || "",
+              company: item.company || "",
+              image: item.photo_url || FALLBACK_AVATAR_IMAGE,
+              rating: item.rating || 5,
+              content: item.review_text || "",
+            }));
+
+          if (mapped.length > 0) {
+            setTestimonials(mapped);
+          }
+        }
+      } catch (error) {
+        console.error("Failed to load testimonials:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTestimonials();
+  }, []);
 
   return (
     <section className="bg-[#FFF5F5] py-24 px-6 overflow-hidden">
@@ -113,7 +146,7 @@ export default function TestimonialSlider() {
 
         {/* Grid / Slider Container */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {TESTIMONIALS.map((item) => (
+          {(loading ? FALLBACK_TESTIMONIALS : testimonials).map((item) => (
             <TestimonialCard key={item.id} testimonial={item} />
           ))}
         </div>

@@ -51,31 +51,31 @@ const ProductCard = ({ product }) => {
           unoptimized={isLocalBackendImage(imageSrc)}
         />
       </div>
-    <div className="p-5 flex flex-col flex-grow">
-      <h3 className="font-extrabold text-[#1e1e2d] text-lg mb-2 leading-tight">
-        {product.name}
-      </h3>
-      <p className="text-gray-400 text-sm mb-6 flex-grow leading-relaxed">
-        {product.category || "Custom product"}
-      </p>
+      <div className="p-5 flex flex-col flex-grow">
+        <h3 className="font-extrabold text-[#1e1e2d] text-lg mb-2 leading-tight">
+          {product.name}
+        </h3>
+        <p className="text-gray-400 text-sm mb-6 flex-grow leading-relaxed">
+          {product.description || product.category || "Custom product"}
+        </p>
 
-      <div className="flex justify-between items-end mb-6">
-        <span className="text-[#EE2A24] font-black text-xl">
-          From ${product.price}
-        </span>
-        <span className="text-[10px] uppercase tracking-wider text-gray-400 font-bold text-right max-w-[50%]">
-          {product.category || "General"}
-        </span>
+        <div className="flex justify-between items-end mb-6">
+          <span className="text-[#EE2A24] font-black text-xl">
+            From ${product.price}
+          </span>
+          <span className="text-[10px] uppercase tracking-wider text-gray-400 font-bold text-right max-w-[50%]">
+            {product.category || "General"}
+          </span>
+        </div>
+
+        <Link
+          href={`/products/${product.id}`}
+          className="w-full bg-[#EE2A24] flex justify-center items-center text-white py-3 rounded-xl font-bold transition-all hover:bg-[#d6221c] active:scale-[0.98]"
+        >
+          Customize Now
+        </Link>
       </div>
-
-      <Link
-        href={`/products/${product.id}`}
-        className="w-full bg-[#EE2A24] flex justify-center items-center text-white py-3 rounded-xl font-bold transition-all hover:bg-[#d6221c] active:scale-[0.98]"
-      >
-        Customize Now
-      </Link>
     </div>
-  </div>
   );
 };
 

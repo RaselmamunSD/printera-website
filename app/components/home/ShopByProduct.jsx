@@ -8,7 +8,7 @@ import axios from "@/lib/axios";
 const FALLBACK_PRODUCT_IMAGE = "/Products/product1.png";
 
 const ProductCard = ({ product }) => {
-  const productHref = product.slug ? `/products/${product.slug}` : `/products/${product.id}`;
+  const productHref = `/products/${product.id}`;
   const imageSrc = product.image_url || FALLBACK_PRODUCT_IMAGE;
   const [currentImage, setCurrentImage] = useState(imageSrc);
 
