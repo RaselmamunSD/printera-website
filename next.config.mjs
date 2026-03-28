@@ -8,7 +8,17 @@ const nextConfig = {
         port: '8000',
         pathname: '/media/**',
       },
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '8000',
+        pathname: '/media/**',
+      },
     ],
+  },
+  experimental: {
+    serverComponentsExternalPackages: ['@react-email/components', '@react-email/render', '@react-email/tailwind'],
+    instrumentationHook: true,
   },
 };
 

@@ -5,50 +5,56 @@ import { ExternalLink, Zap, Package, Palette } from "lucide-react";
 import axios from "@/lib/axios";
 import Link from "next/link";
 
+const FALLBACK_PROMO_IMAGE = "/Products/product1.png";
+const DEFAULT_FULL_CATALOG_URL =
+  process.env.NEXT_PUBLIC_PROMO_FULL_CATALOG_URL ||
+  "https://example.com/full-catalog";
+
+const isLocalBackendImage = (src) =>
+  typeof src === "string" &&
+  (src.startsWith("http://127.0.0.1:8000/") || src.startsWith("http://localhost:8000/"));
+
 // Sub-Components
-const ProductCard = ({ product }) => (
-  <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden flex flex-col group">
-    <div className="relative aspect-square overflow-hidden bg-gray-50">
-      {product.image_url ? (
+const ProductCard = ({ product }) => {
+  const imageSrc = product.image_url || FALLBACK_PROMO_IMAGE;
+
+  return (
+    <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden flex flex-col group">
+      <div className="relative aspect-square overflow-hidden bg-gray-50">
         <Image
-          src={product.image_url}
+          src={imageSrc}
           alt={product.title}
           fill
           className="object-cover transition-transform group-hover:scale-105"
+          unoptimized={isLocalBackendImage(imageSrc)}
         />
-      ) : (
-        <div className="w-full h-full flex items-center justify-center bg-gray-100">
-          <span className="text-gray-400 text-sm font-medium text-center px-4">
-            {product.title}
-          </span>
-        </div>
-      )}
-    </div>
-    <div className="p-5 flex flex-col flex-grow">
-      <span className="text-[10px] font-bold text-[#EE2A24] uppercase tracking-wider mb-1">
-        {product.category}
-      </span>
-      <h3 className="font-bold text-[#1e1e2d] text-lg mb-4">{product.title}</h3>
-      <div className="flex justify-between items-end mb-6">
-        <div>
-          <span className="block text-[#EE2A24] font-black text-xl">
-            ${product.price}
-          </span>
-          <span className="text-[10px] text-gray-400 font-medium">per unit</span>
-        </div>
-        <div className="text-right">
-          <span className="block text-gray-900 font-bold text-sm">
-            {product.min} units
-          </span>
-          <span className="text-[10px] text-gray-400 font-medium">minimum</span>
-        </div>
       </div>
-      <Link href={"/request-quote"} className="w-full bg-[#EE2A24] text-white py-3 rounded-lg font-bold text-sm transition-colors hover:bg-[#d6221c] flex items-center justify-center">
-        Request Quote
-      </Link>
+      <div className="p-5 flex flex-col flex-grow">
+        <span className="text-[10px] font-bold text-[#EE2A24] uppercase tracking-wider mb-1">
+          {product.category}
+        </span>
+        <h3 className="font-bold text-[#1e1e2d] text-lg mb-4">{product.title}</h3>
+        <div className="flex justify-between items-end mb-6">
+          <div>
+            <span className="block text-[#EE2A24] font-black text-xl">
+              ${product.price}
+            </span>
+            <span className="text-[10px] text-gray-400 font-medium">per unit</span>
+          </div>
+          <div className="text-right">
+            <span className="block text-gray-900 font-bold text-sm">
+              {product.min} units
+            </span>
+            <span className="text-[10px] text-gray-400 font-medium">minimum</span>
+          </div>
+        </div>
+        <Link href={"/request-quote"} className="w-full bg-[#EE2A24] text-white py-3 rounded-lg font-bold text-sm transition-colors hover:bg-[#d6221c] flex items-center justify-center">
+          Request Quote
+        </Link>
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 const CategoryBox = ({ name }) => (
   <a
@@ -65,19 +71,34 @@ const CategoryBox = ({ name }) => (
 export default function PromotionalCatalog() {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [fullCatalogUrl, setFullCatalogUrl] = useState(DEFAULT_FULL_CATALOG_URL);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [productsRes, categoriesRes] = await Promise.all([
+        const [productsRes, categoriesRes, configRes] = await Promise.all([
           axios.get("/products/promo-products/"),
           axios.get("/products/promo-categories/"),
+          axios.get("/portfolio/config/"),
         ]);
+
         const uniqueCategories = [...new Set(categoriesRes.data)];
         setProducts(productsRes.data);
         setCategories(uniqueCategories);
+
+        // First preference: per-item full_catalog_url (admin entry in Promo Products)
+        const productUrl = productsRes.data.find((p) => p.full_catalog_url)?.full_catalog_url;
+        if (productUrl) {
+          setFullCatalogUrl(productUrl);
+          return;
+        }
+
+        // Fallback: global config URL
+        if (configRes?.data?.full_catalog_url) {
+          setFullCatalogUrl(configRes.data.full_catalog_url);
+        }
       } catch (err) {
         setError("Failed to load products. Please try again.");
       } finally {
@@ -115,9 +136,14 @@ export default function PromotionalCatalog() {
           <h2 className="text-xl font-extrabold text-[#1e1e2d]">
             Featured Promotional Items
           </h2>
-          <button className="flex items-center gap-2 bg-[#EE2A24] text-white px-5 py-2.5 rounded-lg font-bold text-sm hover:bg-[#d6221c]">
+          <a
+            href={fullCatalogUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 bg-[#EE2A24] text-white px-5 py-2.5 rounded-lg font-bold text-sm hover:bg-[#d6221c]"
+          >
             View Full Catalog <ExternalLink size={16} />
-          </button>
+          </a>
         </div>
 
         {error && (
@@ -197,9 +223,14 @@ export default function PromotionalCatalog() {
               </div>
             ))}
           </div>
-          <button className="mt-16 bg-[#EE2A24] text-white px-10 py-4 rounded-xl font-bold transition-all hover:bg-[#d6221c] flex items-center gap-2 mx-auto">
+          <a
+            href={fullCatalogUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-16 inline-flex bg-[#EE2A24] text-white px-10 py-4 rounded-xl font-bold transition-all hover:bg-[#d6221c] items-center gap-2 mx-auto"
+          >
             Explore Full Catalog <ExternalLink size={18} />
-          </button>
+          </a>
         </div>
       </div>
     </main>

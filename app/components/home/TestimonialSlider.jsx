@@ -3,6 +3,8 @@ import React, { useState } from "react";
 import Image from "next/image";
 import { ArrowLeft, ArrowRight, Star } from "lucide-react";
 
+const FALLBACK_AVATAR_IMAGE = "/user.png";
+
 const TESTIMONIALS = [
   {
     id: 1,
@@ -56,10 +58,13 @@ const TestimonialCard = ({ testimonial }) => (
     <div className="flex items-center gap-4 mb-6">
       <div className="relative w-14 h-14 rounded-full overflow-hidden border-2 border-gray-100">
         <Image
-          src={testimonial.image}
+          src={testimonial.image || FALLBACK_AVATAR_IMAGE}
           alt={testimonial.name}
           fill
           className="object-cover"
+          onError={(event) => {
+            event.currentTarget.src = FALLBACK_AVATAR_IMAGE;
+          }}
         />
       </div>
       <div>

@@ -8,6 +8,10 @@ const FALLBACK_PRODUCT_IMAGE = "/Products/product1.png";
 const FALLBACK_MATERIAL_OPTIONS = ["Acrylic", "Metal", "Plastic"];
 const FALLBACK_APPLICATION_OPTIONS = ["Indoor", "Outdoor"];
 
+const isLocalBackendImage = (src) =>
+  typeof src === "string" &&
+  (src.startsWith("http://127.0.0.1:8000/") || src.startsWith("http://localhost:8000/"));
+
 // 2. Sub-components for Cleanliness
 const FilterGroup = ({ title, options, selectedOptions, onToggle }) => (
   <div className="mb-8">
@@ -33,16 +37,20 @@ const FilterGroup = ({ title, options, selectedOptions, onToggle }) => (
   </div>
 );
 
-const ProductCard = ({ product }) => (
-  <div className="border border-gray-100 rounded-2xl overflow-hidden shadow-sm flex flex-col transition-all hover:shadow-md">
-    <div className="relative aspect-[4/3] bg-gray-50">
-      <Image
-        src={product.image_url || FALLBACK_PRODUCT_IMAGE}
-        alt={product.name}
-        fill
-        className="object-cover"
-      />
-    </div>
+const ProductCard = ({ product }) => {
+  const imageSrc = product.image_url || FALLBACK_PRODUCT_IMAGE;
+
+  return (
+    <div className="border border-gray-100 rounded-2xl overflow-hidden shadow-sm flex flex-col transition-all hover:shadow-md">
+      <div className="relative aspect-[4/3] bg-gray-50">
+        <Image
+          src={imageSrc}
+          alt={product.name}
+          fill
+          className="object-cover"
+          unoptimized={isLocalBackendImage(imageSrc)}
+        />
+      </div>
     <div className="p-5 flex flex-col flex-grow">
       <h3 className="font-extrabold text-[#1e1e2d] text-lg mb-2 leading-tight">
         {product.name}
@@ -68,7 +76,8 @@ const ProductCard = ({ product }) => (
       </Link>
     </div>
   </div>
-);
+  );
+};
 
 export default function AllProductsPage() {
   const [priceRange, setPriceRange] = useState(170);
