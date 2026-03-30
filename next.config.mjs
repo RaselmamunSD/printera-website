@@ -1,6 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
+    domains: [
+      'plasticlettersandsigns.com',
+      'www.plasticlettersandsigns.com',
+    ],
     remotePatterns: [
       {
         protocol: 'http',
