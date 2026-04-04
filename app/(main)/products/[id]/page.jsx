@@ -70,7 +70,7 @@ export default function SignageConfigurator() {
 
   const handleAddToCart = async () => {
     if (!product?.id) {
-      toast.error("Product তথ্য লোড হয়নি। আবার চেষ্টা করুন।");
+      toast.error("Product information failed to load. Please try again.");
       return;
     }
 
@@ -88,9 +88,9 @@ export default function SignageConfigurator() {
           braille: config.braille,
         },
       });
-      toast.success("Product cart-এ add হয়েছে।");
+      toast.success("The product has been added to the cart");
     } catch (cartError) {
-      toast.error(cartError.response?.data?.error || "Cart-এ add করা যায়নি।");
+      toast.error(cartError.response?.data?.error || "Failed to add to cart.");
     } finally {
       setAddingToCart(false);
     }

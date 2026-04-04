@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Eye, EyeOff, Mail, Lock, User } from "lucide-react";
 import google from "../../../public/auth/google.png";
 import axios from "@/lib/axios";
+import { API_BASE_URL } from "@/lib/apiClient";
 import { useAuth } from "@/context/AuthContext";
 
 export default function Login() {
@@ -46,8 +47,7 @@ export default function Login() {
   };
 
   const handleGoogleLogin = () => {
-    const apiBaseUrl = (process.env.NEXT_PUBLIC_BACKEND_URL || "http://127.0.0.1:8000/api").replace(/\/$/, "");
-    const backendOrigin = apiBaseUrl.replace(/\/api$/, "");
+    const backendOrigin = API_BASE_URL.replace(/\/api$/, "");
     const frontendOrigin = window.location.origin;
     window.location.href = `${backendOrigin}/api/auth/google/?frontend=${encodeURIComponent(frontendOrigin)}`;
   };

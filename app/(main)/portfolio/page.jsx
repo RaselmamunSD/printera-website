@@ -2,13 +2,10 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
-import { ChevronRight } from "lucide-react";
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/$/, "") ||
-  "http://127.0.0.1:8000";
+import { API_BASE_URL } from "@/lib/apiClient";
 
-const PORTFOLIO_ENDPOINT = `${API_BASE_URL}/api/portfolio/`;
+const PORTFOLIO_ENDPOINT = `${API_BASE_URL}/portfolio/`;
 
 const normalizeProject = (project) => ({
   id: project.id,
@@ -20,41 +17,16 @@ const normalizeProject = (project) => ({
 });
 
 const ProjectCard = ({ project }) => {
-  const detailsHref = project.external_url || "#";
-  const isExternal = Boolean(project.external_url);
-
   return (
-    <div className="group flex flex-col bg-white rounded-xl overflow-hidden border border-gray-100 transition-all duration-300 hover:shadow-lg animate-in fade-in zoom-in duration-500">
+    <div className="group relative overflow-hidden rounded-lg animate-in fade-in zoom-in duration-500">
       <div className="relative aspect-[16/10] overflow-hidden bg-gray-100">
         <Image
           src={project.image}
           alt={project.title}
           fill
           unoptimized={project.image.startsWith("http")}
-          className="object-cover transition-transform duration-500 group-hover:scale-105"
+          className="object-cover transition-transform duration-500 group-hover:scale-110"
         />
-      </div>
-      <div className="p-5 flex flex-col flex-grow">
-        <span className="text-[10px] font-bold text-[#EE2A24] uppercase tracking-widest mb-1">
-          {project.category}
-        </span>
-        <h3 className="text-lg font-bold text-[#1e1e2d] mb-2 leading-tight">
-          {project.title}
-        </h3>
-        <p className="text-gray-400 text-sm mb-6 flex-grow leading-relaxed">
-          {project.description}
-        </p>
-        <a
-          href={detailsHref}
-          target={isExternal ? "_blank" : undefined}
-          rel={isExternal ? "noopener noreferrer" : undefined}
-          className={`inline-flex items-center text-xs font-bold uppercase tracking-wider ${isExternal
-            ? "text-[#EE2A24] hover:underline"
-            : "text-gray-300 cursor-not-allowed pointer-events-none"
-            }`}
-        >
-          View Details <ChevronRight size={14} className="ml-1" />
-        </a>
       </div>
     </div>
   );

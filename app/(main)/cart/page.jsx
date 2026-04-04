@@ -129,7 +129,7 @@ export default function CheckoutFlow() {
 
     if (checkoutStatus === "cancel") {
       setStep(3);
-      toast.error("Stripe checkout cancel হয়েছে। চাইলে আবার payment করতে পারেন।");
+      toast.error("Stripe checkout was canceled. You can try making the payment again.");
     }
   }, [checkoutStatus]);
 
@@ -143,7 +143,7 @@ export default function CheckoutFlow() {
     const missingContact = requiredFields.find((field) => !shippingDetails[field]?.trim());
 
     if (missingContact) {
-      toast.error("নাম, ফোন, আর email দিতে হবে।");
+      toast.error("Name, phone, and email are required.");
       return false;
     }
 
@@ -151,7 +151,7 @@ export default function CheckoutFlow() {
       const addressFields = ["street_address", "city", "state", "postal_code"];
       const missingAddress = addressFields.find((field) => !shippingDetails[field]?.trim());
       if (missingAddress) {
-        toast.error("Shipping address complete করুন।");
+        toast.error("Please complete the shipping address.");
         return false;
       }
     }
@@ -169,7 +169,7 @@ export default function CheckoutFlow() {
       const nextCart = await updateCartItem(itemId, { quantity: nextQuantity }, deliveryMethod);
       setCart(nextCart);
     } catch (error) {
-      toast.error(error.response?.data?.error || "Quantity update করা যায়নি।");
+      toast.error(error.response?.data?.error || "Failed to update quantity.");
     } finally {
       setUpdatingItemId(null);
     }
@@ -180,9 +180,9 @@ export default function CheckoutFlow() {
       setUpdatingItemId(itemId);
       const nextCart = await removeCartItem(itemId, deliveryMethod);
       setCart(nextCart);
-      toast.success("Item cart থেকে remove হয়েছে।");
+      toast.success("Item has been removed from the cart.");
     } catch (error) {
-      toast.error(error.response?.data?.error || "Item remove করা যায়নি।");
+      toast.error(error.response?.data?.error || "Failed to remove item.");
     } finally {
       setUpdatingItemId(null);
     }
@@ -194,9 +194,9 @@ export default function CheckoutFlow() {
       const nextCart = await clearCart(deliveryMethod);
       setCart(nextCart);
       setStep(0);
-      toast.success("Cart empty করা হয়েছে।");
+      toast.success("Cart has been cleared.");
     } catch (error) {
-      toast.error(error.response?.data?.error || "Cart clear করা যায়নি।");
+      toast.error(error.response?.data?.error || "Failed to clear cart.");
     } finally {
       setLoading(false);
     }
@@ -209,7 +209,7 @@ export default function CheckoutFlow() {
     }
 
     if (!localStorage.getItem("access_token")) {
-      toast.error("Payment complete করতে login করতে হবে।");
+      toast.error("Payment complete to login.");
       router.push("/login");
       return;
     }
@@ -233,7 +233,7 @@ export default function CheckoutFlow() {
     } catch (error) {
       toast.error(
         error.response?.data?.error ||
-        "Stripe checkout শুরু করা যায়নি। পরে real Stripe key দিলে এটা live payment নেবে।",
+        "Failed to initiate Stripe checkout. Once a real Stripe key is provided, it will process live payments.”",
       );
     } finally {
       setCheckingOut(false);
@@ -386,7 +386,7 @@ export default function CheckoutFlow() {
         <div className="rounded-3xl border border-dashed border-gray-200 bg-white p-16 text-center shadow-sm">
           <h1 className="mb-3 text-3xl font-black text-[#1e1e2d]">Your cart is empty</h1>
           <p className="mx-auto mb-8 max-w-xl text-sm font-medium text-gray-500">
-            Product configure করে cart-এ add করলে এখান থেকে quantity update, checkout, আর Stripe payment করতে পারবেন।
+            After configuring the product and adding it to the cart, you can update the quantity, proceed to checkout, and make a payment via Stripe from here.
           </p>
           <Link href="/products" className="inline-flex rounded-2xl bg-[#2B6BFF] px-6 py-4 text-sm font-black text-white hover:bg-[#1A56E0]">
             Browse Products
@@ -562,12 +562,12 @@ export default function CheckoutFlow() {
             <p className="mb-3 text-sm font-black uppercase tracking-wider text-[#2B6BFF]">Stripe Secure Checkout</p>
             <h4 className="mb-3 text-2xl font-black text-[#1e1e2d]">Card details Stripe page-এ collect হবে</h4>
             <p className="mb-6 text-sm font-medium leading-7 text-gray-500">
-              Review step থেকে “Place Order & Pay” চাপলে আপনি Stripe hosted checkout page-এ redirect হবেন। আপনি পরে real Stripe key দিলে live payment ঠিকমতো কাজ করবে।
+              From the review step, when you click ‘Place Order & Pay’, you will be redirected to the Stripe hosted checkout page. Once you provide a real Stripe key, live payments will work properly.
             </p>
 
             <div className="flex items-center gap-3 rounded-xl border border-gray-100 bg-white p-4">
               <Lock size={18} className="text-gray-400" />
-              <p className="text-xs font-bold text-gray-500">Card data আপনার app server-এ না এসে Stripe secure checkout-এ যাবে।</p>
+              <p className="text-xs font-bold text-gray-500">Card data will not go to your app server; it will be handled by Stripe’s secure checkout.</p>
             </div>
           </div>
 
@@ -647,7 +647,7 @@ export default function CheckoutFlow() {
               <div>
                 <h5 className="mb-1 text-[14px] font-semibold text-[#92400E]">Please review your custom text carefully</h5>
                 <p className="text-[13px] leading-relaxed text-[#92400E] opacity-90">
-                  Production শুরু হওয়ার পরে custom text change করা যাবে না। Spell, punctuation, আর size/material সব ঠিক আছে কিনা দেখে নিন।
+                  Once production begins, custom text cannot be changed. Please make sure the spelling, punctuation, and size/material are correct
                 </p>
               </div>
             </div>
@@ -689,7 +689,7 @@ export default function CheckoutFlow() {
         </div>
 
         <p className="mb-10 max-w-[480px] text-[15px] leading-relaxed text-gray-600">
-          Confirmation email এবং payment update Stripe-এর মাধ্যমে sync হবে। Dashboard থেকে order status track করতে পারবেন।
+          Confirmation email and payment updates will be synced with Stripe. You can track your order status from the dashboard.
         </p>
 
         <div className="flex w-full flex-col gap-4 sm:flex-row">

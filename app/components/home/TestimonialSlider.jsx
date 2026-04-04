@@ -101,7 +101,7 @@ export default function TestimonialSlider() {
   useEffect(() => {
     const fetchTestimonials = async () => {
       try {
-        const response = await axios.get("/testimonials/");
+        const response = await axios.get("testimonials/");
         if (Array.isArray(response.data) && response.data.length > 0) {
           const mapped = response.data
             .filter((item) => item.is_active !== false)

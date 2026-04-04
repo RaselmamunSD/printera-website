@@ -3,6 +3,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import axios from "@/lib/axios";
+import { API_URL } from "@/lib/apiClient";
 
 const FALLBACK_PRODUCT_IMAGE = "/Products/product1.png";
 const FALLBACK_MATERIAL_OPTIONS = ["Acrylic", "Metal", "Plastic"];
@@ -10,7 +11,7 @@ const FALLBACK_APPLICATION_OPTIONS = ["Indoor", "Outdoor"];
 
 const isLocalBackendImage = (src) =>
   typeof src === "string" &&
-  (src.startsWith("http://127.0.0.1:8000/") || src.startsWith("http://localhost:8000/"));
+  (src.startsWith(`${API_URL}/`) || src.startsWith("http://127.0.0.1:8000/") || src.startsWith("http://localhost:8000/"));
 
 // 2. Sub-components for Cleanliness
 const FilterGroup = ({ title, options, selectedOptions, onToggle }) => (
