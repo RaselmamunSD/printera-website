@@ -33,7 +33,23 @@ apiClient.interceptors.response.use(
     if (error.response?.status === 401 && typeof window !== 'undefined') {
       localStorage.removeItem('access_token');
       localStorage.removeItem('refresh_token');
+      // Optionally redirect to login
+      if (typeof window !== 'undefined' && window.location.pathname.includes('dashboard')) {
+        window.location.href = '/login';
+      }
     }
+    
+    // Log detailed error information for debugging
+    if (error.response?.status === 400) {
+      console.error('400 Bad Request Error:', {
+        url: error.config?.url,
+        method: error.config?.method,
+        headers: error.config?.headers,
+        data: error.config?.data,
+        response: error.response?.data
+      });
+    }
+    
     return Promise.reject(error);
   }
 );

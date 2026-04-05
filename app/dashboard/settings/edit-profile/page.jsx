@@ -81,20 +81,37 @@ const EditProfileForm = () => {
     setLoading(true);
     setMessage("");
     try {
-      if (photoFile) {
-        const payload = new FormData();
-        payload.append("photo", photoFile);
-          // Only send photo (and any non-empty fields) so DRF validation doesn't fail
-          // due to empty strings in optional inputs.
-          Object.entries(formData).forEach(([key, value]) => {
-            if (value !== null && value !== undefined && value !== "") {
-              payload.append(key, value);
-            }
-          });
+      const allowedFields = ['first_name', 'last_name', 'email', 'phone', 'company_name', 'address', 'city', 'state', 'postal_code'];
+      const payloadData = allowedFields.reduce((acc, field) => {
+        const value = formData[field];
+        if (typeof value !== 'object') {
+          acc[field] = value ?? "";
+        }
+        return acc;
+      }, {});
 
-        const res = await axios.patch("/profile/me/", payload);
+      const hasPhotoFile = photoFile && photoFile instanceof File && photoFile.size > 0;
+      console.log("profile submit payloadData:", payloadData);
+      console.log("photoFile info:", {
+        exists: !!photoFile,
+        isFile: photoFile instanceof File,
+        size: photoFile?.size,
+      });
+
+      if (hasPhotoFile) {
+        const formPayload = new FormData();
+        formPayload.append("photo", photoFile);
+        allowedFields.forEach((field) => {
+          formPayload.append(field, payloadData[field] ?? "");
+        });
+
+        const res = await axios.patch("/profile/me/", formPayload, {
+          headers: {
+            'Content-Type': undefined,
+          },
+        });
+
         const serverPhotoUrl = res?.data?.photo_url || null;
-        // If server returns photo_url, update header immediately to avoid temporary drop.
         if (serverPhotoUrl) {
           window.dispatchEvent(
             new CustomEvent("profile_photo_preview", {
@@ -103,15 +120,36 @@ const EditProfileForm = () => {
           );
         }
       } else {
-        await axios.patch("/profile/me/", formData);
+        const res = await axios.patch("/profile/me/", payloadData);
+        if (!res || res.status !== 200) {
+          throw new Error(`Unexpected response status: ${res?.status}`);
+        }
       }
-      setMessage("Profile updated successfully.");
 
-      // Trigger layout to re-fetch dashboard profile (and clear preview override).
+      setMessage("Profile updated successfully.");
       window.dispatchEvent(new CustomEvent("profile_photo_updated"));
     } catch (err) {
       const details = err?.response?.data;
-      setMessage(details ? `Failed: ${JSON.stringify(details)}` : "Failed to update profile.");
+      const backendErrors = details && typeof details === 'object' ? Object.entries(details).map(([key, val]) => `${key}: ${JSON.stringify(val)}`).join('\n') : JSON.stringify(details);
+      const errorMessage = backendErrors || err?.message || "Failed to update profile.";
+      setMessage(`Failed: ${errorMessage}`);
+      console.error("Profile update error - BACKEND RESPONSE:", details);
+      console.error("Profile update error - FULL DETAILS:", {
+        status: err?.response?.status,
+        data: err?.response?.data,
+        message: err?.message,
+        config: {
+          url: err?.config?.url,
+          method: err?.config?.method,
+          data: err?.config?.data,
+          headers: err?.config?.headers,
+        },
+        photoFileInfo: {
+          exists: !!photoFile,
+          isFile: photoFile instanceof File,
+          size: photoFile?.size,
+        },
+      });
     } finally {
       setLoading(false);
     }

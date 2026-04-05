@@ -7,14 +7,23 @@ import axios from "@/lib/axios";
 
 const SettingsView = () => {
   const [profile, setProfile] = useState(null);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchProfile = async () => {
       try {
         const response = await axios.get("/profile/me/");
         setProfile(response.data);
-      } catch {
+        setError(null);
+      } catch (err) {
+        console.error("Failed to fetch profile:", {
+          status: err.response?.status,
+          data: err.response?.data,
+          message: err.message,
+          url: err.config?.url,
+        });
         setProfile(null);
+        setError(err.response?.data?.error || "Failed to load profile. Please try refreshing.");
       }
     };
 
@@ -34,6 +43,13 @@ const SettingsView = () => {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500 p-6">
+      {/* ERROR DISPLAY */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-red-700 text-sm">
+          {error}
+        </div>
+      )}
+
       {/* 1. ACCOUNT INFORMATION SECTION */}
       <section className="space-y-4">
         <h3 className="text-sm font-black text-[#1e1e2d] uppercase tracking-wider">
