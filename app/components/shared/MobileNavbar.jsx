@@ -25,7 +25,7 @@ const MobileNavbar = () => {
       >
         {isOpen ?
           <MdCancel />
-        : <MdMenu />}
+          : <MdMenu />}
       </button>
 
       <AnimatePresence>
@@ -44,7 +44,7 @@ const MobileNavbar = () => {
               {[
                 { name: "Home", href: "/" },
                 { name: "Products", href: "/products" },
-                { name: "Promo Catalogue", href: "/promo-catalogue" },
+                { name: "Promo Catalogue", href: "https://plasticlettersandsigns.espwebsites.com/" },
                 { name: "Portfolio", href: "/portfolio" },
                 { name: "Request a Quote", href: "/request-quote" },
               ].map((link) => (

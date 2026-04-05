@@ -48,7 +48,7 @@ const CategoryCard = ({ category, index }) => {
         </p>
 
         <Link
-          href={category.href || "/products"}
+          href={"/products"}
           className="inline-flex items-center justify-center gap-2 w-full py-3 px-4 bg-[#EE2A24] text-white font-semibold rounded-lg transition-colors duration-200 hover:bg-[#D1221D]"
         >
           Explore

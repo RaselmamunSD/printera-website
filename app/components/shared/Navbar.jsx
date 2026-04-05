@@ -52,7 +52,7 @@ const Navbar = () => {
 
   const navLinks = [
     { name: "Products", href: "/products" },
-    { name: "Promo Catalog", href: "/promo-catalogue" },
+    { name: "Promo Catalog", href: "https://plasticlettersandsigns.espwebsites.com/" },
     { name: "Portfolio", href: "/portfolio" },
     { name: "Request a Quote", href: "/request-quote" },
   ];

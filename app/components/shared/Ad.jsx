@@ -34,7 +34,7 @@ const Ad = () => {
               className="inline-block mr-2"
             />
             <h3 className="text-white inline-block">
-              info@printingservice.com
+              info@plasticlettersandsigns.com
             </h3>
           </div>
         </div>
