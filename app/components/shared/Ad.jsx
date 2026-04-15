@@ -21,7 +21,7 @@ const Ad = () => {
               alt="Call Icon"
               className="inline-block mr-2"
             />
-            <h3 className="text-white inline-block">14064389351</h3>
+            <h3 className="text-white inline-block">+1 (239) 936-8059</h3>
           </div>
 
           {/* email */}

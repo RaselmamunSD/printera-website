@@ -11,7 +11,6 @@ const FOOTER_LINKS = {
     { label: "Request a Quote", href: "/quote" },
   ],
   help: [
-    { label: "Contact Us", href: "/contact" },
     { label: "Terms & Conditions", href: "/terms" },
     { label: "Privacy Policy", href: "/privacy" },
   ],
