@@ -1,8 +1,10 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import Image from "next/image";
 import { ArrowLeft, ArrowRight, Star } from "lucide-react";
 import axios from "@/lib/axios";
+import useEmblaCarousel from "embla-carousel-react";
+import Autoplay from "embla-carousel-autoplay";
 
 const FALLBACK_AVATAR_IMAGE = "/user.png";
 
@@ -46,7 +48,9 @@ const RatingStars = ({ count }) => (
       <Star
         key={i}
         size={16}
-        className={`${i < count ? "fill-amber-400 text-amber-400" : "text-gray-200"}`}
+        className={`${
+          i < count ? "fill-amber-400 text-amber-400" : "text-gray-200"
+        }`}
       />
     ))}
   </div>
@@ -95,8 +99,19 @@ const TestimonialCard = ({ testimonial }) => (
 
 export default function TestimonialSlider() {
   const [testimonials, setTestimonials] = useState(FALLBACK_TESTIMONIALS);
-  const [activePage, setActivePage] = useState(0);
   const [loading, setLoading] = useState(true);
+
+  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true, slidesToScroll: 1, align: 'start' }, [
+    Autoplay({ playOnInit: true, delay: 3000, stopOnInteraction: false, stopOnMouseEnter: true }),
+  ]);
+
+  const scrollPrev = useCallback(() => {
+    if (emblaApi) emblaApi.scrollPrev();
+  }, [emblaApi]);
+
+  const scrollNext = useCallback(() => {
+    if (emblaApi) emblaApi.scrollNext();
+  }, [emblaApi]);
 
   useEffect(() => {
     const fetchTestimonials = async () => {
@@ -144,11 +159,15 @@ export default function TestimonialSlider() {
           </p>
         </div>
 
-        {/* Grid / Slider Container */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {(loading ? FALLBACK_TESTIMONIALS : testimonials).map((item) => (
-            <TestimonialCard key={item.id} testimonial={item} />
-          ))}
+        {/* Embla Carousel */}
+        <div className="overflow-hidden" ref={emblaRef}>
+          <div className="flex">
+            {(loading ? FALLBACK_TESTIMONIALS : testimonials).map((item) => (
+              <div className="flex-[0_0_100%] md:flex-[0_0_50%] lg:flex-[0_0_33.3333%] min-w-0 pl-4" key={item.id}>
+                <TestimonialCard testimonial={item} />
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* Navigation Arrows */}
@@ -156,12 +175,14 @@ export default function TestimonialSlider() {
           <button
             className="p-3 rounded-full border border-transparent text-[#EE2A24] transition-all hover:bg-white hover:shadow-sm active:scale-95"
             aria-label="Previous testimonial"
+            onClick={scrollPrev}
           >
             <ArrowLeft size={24} />
           </button>
           <button
             className="p-3 rounded-full border border-transparent text-[#EE2A24] transition-all hover:bg-white hover:shadow-sm active:scale-95"
             aria-label="Next testimonial"
+            onClick={scrollNext}
           >
             <ArrowRight size={24} />
           </button>

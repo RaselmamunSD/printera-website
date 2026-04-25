@@ -1,5 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  experimental: {
+    serverComponentsExternalPackages: ["embla-carousel-autoplay"],
+  },
   images: {
     domains: [
       'plasticlettersandsigns.com',
