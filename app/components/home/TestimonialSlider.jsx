@@ -101,9 +101,17 @@ export default function TestimonialSlider() {
   const [testimonials, setTestimonials] = useState(FALLBACK_TESTIMONIALS);
   const [loading, setLoading] = useState(true);
 
-  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true, slidesToScroll: 1, align: 'start' }, [
-    Autoplay({ playOnInit: true, delay: 3000, stopOnInteraction: false, stopOnMouseEnter: true }),
-  ]);
+  const [emblaRef, emblaApi] = useEmblaCarousel(
+    { loop: true, slidesToScroll: 1, align: "start" },
+    [
+      Autoplay({
+        playOnInit: true,
+        delay: 3000,
+        stopOnInteraction: false,
+        stopOnMouseEnter: true,
+      }),
+    ],
+  );
 
   const scrollPrev = useCallback(() => {
     if (emblaApi) emblaApi.scrollPrev();
@@ -163,7 +171,10 @@ export default function TestimonialSlider() {
         <div className="overflow-hidden" ref={emblaRef}>
           <div className="flex">
             {(loading ? FALLBACK_TESTIMONIALS : testimonials).map((item) => (
-              <div className="flex-[0_0_100%] md:flex-[0_0_50%] lg:flex-[0_0_33.3333%] min-w-0 pl-4" key={item.id}>
+              <div
+                className="flex-[0_0_100%] md:flex-[0_0_50%] lg:flex-[0_0_33.3333%] min-w-0 pl-4"
+                key={item.id}
+              >
                 <TestimonialCard testimonial={item} />
               </div>
             ))}
