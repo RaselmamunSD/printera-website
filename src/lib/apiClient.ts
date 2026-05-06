@@ -1,7 +1,6 @@
 import axios, { type AxiosInstance } from 'axios';
 
-const rawUrl = (process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000').replace(/\/$/, '');
-
+const rawUrl = (process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_BACKEND_URL || 'http://10.10.12.28:8000').replace(/\/$/, '');
 export const API_URL = rawUrl;
 export const API_BASE_URL = rawUrl.endsWith('/api') ? rawUrl : `${rawUrl}/api`;
 

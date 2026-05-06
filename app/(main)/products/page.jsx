@@ -11,7 +11,9 @@ const FALLBACK_APPLICATION_OPTIONS = ["Indoor", "Outdoor"];
 
 const isLocalBackendImage = (src) =>
   typeof src === "string" &&
-  (src.startsWith(`${API_URL}/`) || src.startsWith("http://127.0.0.1:8000/") || src.startsWith("http://localhost:8000/"));
+  (src.startsWith(`${API_URL}/`) ||
+    src.startsWith("http://127.0.0.1:8000/") ||
+    src.startsWith("http://localhost:8000/"));
 
 // 2. Sub-components for Cleanliness
 const FilterGroup = ({ title, options, selectedOptions, onToggle }) => (
@@ -39,44 +41,118 @@ const FilterGroup = ({ title, options, selectedOptions, onToggle }) => (
 );
 
 const ProductCard = ({ product }) => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const imageSrc = product.image_url || FALLBACK_PRODUCT_IMAGE;
 
+  const description =
+    product.description || product.category || "Custom product";
+  const isLongDescription = description.length > 30;
+  const truncatedDescription = isLongDescription
+    ? description.slice(0, 30) + "..."
+    : description;
+
   return (
-    <div className="border border-gray-100 rounded-2xl overflow-hidden shadow-sm flex flex-col transition-all hover:shadow-md">
-      <div className="relative aspect-[4/3] bg-gray-50">
-        <Image
-          src={imageSrc}
-          alt={product.name}
-          fill
-          className="object-cover"
-          unoptimized={isLocalBackendImage(imageSrc)}
-        />
-      </div>
-      <div className="p-5 flex flex-col flex-grow">
-        <h3 className="font-extrabold text-[#1e1e2d] text-lg mb-2 leading-tight">
-          {product.name}
-        </h3>
-        <p className="text-gray-400 text-sm mb-6 flex-grow leading-relaxed">
-          {product.description || product.category || "Custom product"}
-        </p>
-
-        <div className="flex justify-between items-end mb-6">
-          <span className="text-[#EE2A24] font-black text-xl">
-            From ${product.price}
-          </span>
-          <span className="text-[10px] uppercase tracking-wider text-gray-400 font-bold text-right max-w-[50%]">
-            {product.category || "General"}
-          </span>
+    <>
+      <div className="border border-gray-100 rounded-2xl overflow-hidden shadow-sm flex flex-col transition-all hover:shadow-md h-full">
+        <div className="relative aspect-4/3 bg-gray-50">
+          <Image
+            src={imageSrc}
+            alt={product.name}
+            fill
+            className="object-cover"
+            unoptimized={isLocalBackendImage(imageSrc)}
+          />
         </div>
+        <div className="p-5 flex flex-col grow">
+          <h3 className="font-extrabold text-[#1e1e2d] text-lg mb-2 leading-tight">
+            {product.name}
+          </h3>
+          <p className="text-gray-400 text-sm mb-6 grow leading-relaxed">
+            {truncatedDescription}
+            {isLongDescription && (
+              <button
+                onClick={() => setIsModalOpen(true)}
+                className="ml-1 text-[#EE2A24] hover:underline font-semibold focus:outline-none"
+              >
+                See more
+              </button>
+            )}
+          </p>
 
-        <Link
-          href={`/products/${product.id}`}
-          className="w-full bg-[#EE2A24] flex justify-center items-center text-white py-3 rounded-xl font-bold transition-all hover:bg-[#d6221c] active:scale-[0.98]"
-        >
-          Customize Now
-        </Link>
+          <div className="flex justify-between items-end mb-6">
+            <span className="text-[#EE2A24] font-black text-xl">
+              From ${product.price}
+            </span>
+            <span className="text-[10px] uppercase tracking-wider text-gray-400 font-bold text-right max-w-[50%]">
+              {product.category || "General"}
+            </span>
+          </div>
+
+          <Link
+            href={`/products/${product.id}`}
+            className="w-full bg-[#EE2A24] flex justify-center items-center text-white py-3 rounded-xl font-bold transition-all hover:bg-[#d6221c] active:scale-[0.98]"
+          >
+            Customize Now
+          </Link>
+        </div>
       </div>
-    </div>
+
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden relative shadow-2xl">
+            <button
+              onClick={() => setIsModalOpen(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-900 transition-colors z-10 w-8 h-8 flex items-center justify-center bg-gray-100 rounded-full focus:outline-none"
+            >
+              ✕
+            </button>
+
+            <div className="flex flex-col md:flex-row h-full overflow-hidden">
+              <div className="w-full md:w-1/2 p-6 bg-gray-50 flex flex-col border-r border-gray-100 shrink-0">
+                <div className="relative w-full aspect-4/3 rounded-xl overflow-hidden mb-4 bg-white shadow-sm border border-gray-100">
+                  <Image
+                    src={imageSrc}
+                    alt={product.name}
+                    fill
+                    className="object-contain p-2"
+                    unoptimized={isLocalBackendImage(imageSrc)}
+                  />
+                </div>
+                <h3 className="font-extrabold text-[#1e1e2d] text-2xl mb-2">
+                  {product.name}
+                </h3>
+                <div className="flex justify-between items-end mb-4 shrink-0">
+                  <span className="text-[#EE2A24] font-black text-xl">
+                    From ${product.price}
+                  </span>
+                  <span className="text-[10px] uppercase tracking-wider text-gray-400 font-bold text-right max-w-[50%]">
+                    {product.category || "General"}
+                  </span>
+                </div>
+              </div>
+              <div className="w-full md:w-1/2 flex flex-col p-6 overflow-hidden">
+                <h4 className="font-bold text-gray-900 mb-4">
+                  Product Details
+                </h4>
+                <div className="flex-grow overflow-y-auto pr-2">
+                  <p className="text-gray-600 text-sm leading-relaxed whitespace-pre-wrap">
+                    {description}
+                  </p>
+                </div>
+                <div className="mt-6 pt-4 border-t border-gray-100 shrink-0">
+                  <Link
+                    href={`/products/${product.id}`}
+                    className="w-full bg-[#EE2A24] flex justify-center items-center text-white py-3 rounded-xl font-bold transition-all hover:bg-[#d6221c] active:scale-[0.98]"
+                  >
+                    Customize Now
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 };
 
@@ -91,6 +167,8 @@ export default function AllProductsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  console.log("Products:", products);
+
   useEffect(() => {
     const fetchProducts = async () => {
       try {
@@ -101,9 +179,18 @@ export default function AllProductsPage() {
           axios.get("/products/filter-options/"),
         ]);
 
-        const fetchedProducts = Array.isArray(productsResponse.data) ? productsResponse.data : [];
-        const fetchedMaterials = Array.isArray(optionsResponse.data?.materials) ? optionsResponse.data.materials : [];
-        const fetchedApplications = Array.isArray(optionsResponse.data?.applications) ? optionsResponse.data.applications : [];
+        const fetchedProducts = Array.isArray(productsResponse.data)
+          ? productsResponse.data
+          : [];
+
+        const fetchedMaterials = Array.isArray(optionsResponse.data?.materials)
+          ? optionsResponse.data.materials
+          : [];
+        const fetchedApplications = Array.isArray(
+          optionsResponse.data?.applications,
+        )
+          ? optionsResponse.data.applications
+          : [];
         const highestPrice = fetchedProducts.reduce((max, product) => {
           const value = Number(product.price) || 0;
           return value > max ? value : max;
@@ -129,8 +216,12 @@ export default function AllProductsPage() {
   const visibleProducts = useMemo(() => {
     return products.filter((product) => {
       const withinPrice = Number(product.price) <= priceRange;
-      const productMaterials = Array.isArray(product.materials) ? product.materials : [];
-      const productApplications = Array.isArray(product.applications) ? product.applications : [];
+      const productMaterials = Array.isArray(product.materials)
+        ? product.materials
+        : [];
+      const productApplications = Array.isArray(product.applications)
+        ? product.applications
+        : [];
 
       const materialMatch =
         selectedMaterials.length === 0 ||
@@ -146,13 +237,17 @@ export default function AllProductsPage() {
 
   const toggleMaterial = (option) => {
     setSelectedMaterials((prev) =>
-      prev.includes(option) ? prev.filter((item) => item !== option) : [...prev, option]
+      prev.includes(option)
+        ? prev.filter((item) => item !== option)
+        : [...prev, option],
     );
   };
 
   const toggleApplication = (option) => {
     setSelectedApplications((prev) =>
-      prev.includes(option) ? prev.filter((item) => item !== option) : [...prev, option]
+      prev.includes(option)
+        ? prev.filter((item) => item !== option)
+        : [...prev, option],
     );
   };
 
@@ -169,7 +264,9 @@ export default function AllProductsPage() {
         <div className="mb-10">
           <h1 className="text-3xl font-black text-[#1e1e2d]">All Products</h1>
           <p className="text-gray-400 font-medium mt-1">
-            {loading ? "Loading products..." : `${visibleProducts.length} products found`}
+            {loading
+              ? "Loading products..."
+              : `${visibleProducts.length} products found`}
           </p>
         </div>
 
@@ -230,7 +327,10 @@ export default function AllProductsPage() {
             {!error && loading && (
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
                 {[...Array(6)].map((_, index) => (
-                  <div key={index} className="h-[360px] animate-pulse rounded-2xl bg-gray-100" />
+                  <div
+                    key={index}
+                    className="h-[360px] animate-pulse rounded-2xl bg-gray-100"
+                  />
                 ))}
               </div>
             )}
