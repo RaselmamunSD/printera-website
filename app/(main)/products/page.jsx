@@ -59,6 +59,7 @@ const ProductCard = ({ product }) => {
             src={imageSrc}
             alt={product.name}
             fill
+            sizes="(max-width: 768px) 100vw, 33vw"
             className="object-cover"
             unoptimized={isLocalBackendImage(imageSrc)}
           />
@@ -114,6 +115,7 @@ const ProductCard = ({ product }) => {
                     src={imageSrc}
                     alt={product.name}
                     fill
+                    sizes="(max-width: 768px) 100vw, 50vw"
                     className="object-contain p-2"
                     unoptimized={isLocalBackendImage(imageSrc)}
                   />

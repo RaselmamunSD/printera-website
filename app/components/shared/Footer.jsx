@@ -56,6 +56,7 @@ const Footer = () => {
                   width={275}
                   height={60}
                   className="object-contain"
+                  style={{ width: "auto", height: "auto" }}
                 />
               </div>
               <p className="text-white leading-relaxed max-w-sm">

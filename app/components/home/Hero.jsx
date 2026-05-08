@@ -77,6 +77,7 @@ const Hero = () => {
                 src={sign2}
                 alt="Print on Demand Service"
                 fill
+                sizes="(max-width: 768px) 100vw, 25vw"
                 className="object-cover group-hover:scale-105 transition-transform"
               />
               <span className="absolute bottom-4 right-4 bg-[#fcd34d] text-[10px] font-bold px-3 py-1.5 rounded-full uppercase">
@@ -89,6 +90,7 @@ const Hero = () => {
                 src={sign3}
                 alt="Business Card Design"
                 fill
+                sizes="(max-width: 768px) 100vw, 25vw"
                 className="object-cover group-hover:scale-105 transition-transform"
               />
               <span className="absolute bottom-4 right-4 bg-[#fcd34d] text-[10px] font-bold px-3 py-1.5 rounded-full uppercase">

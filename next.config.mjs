@@ -1,14 +1,17 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  experimental: {
-    serverComponentsExternalPackages: ["embla-carousel-autoplay"],
-  },
   images: {
-    domains: [
-      'plasticlettersandsigns.com',
-      'www.plasticlettersandsigns.com',
-    ],
     remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'plasticlettersandsigns.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'www.plasticlettersandsigns.com',
+        pathname: '/**',
+      },
       {
         protocol: 'http',
         hostname: '127.0.0.1',
@@ -23,7 +26,12 @@ const nextConfig = {
       },
     ],
   },
-  serverExternalPackages: ['@react-email/components', '@react-email/render', '@react-email/tailwind'],
+  serverExternalPackages: [
+    'embla-carousel-autoplay',
+    '@react-email/components',
+    '@react-email/render',
+    '@react-email/tailwind',
+  ],
 };
 
 export default nextConfig;

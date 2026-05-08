@@ -11,6 +11,7 @@ const HeroSection = () => {
           src={excellenceTruck}
           alt="Experience Excellence Service"
           fill
+          sizes="100vw"
           priority
           className="object-cover"
         />
@@ -26,6 +27,7 @@ const HeroSection = () => {
             width={783}
             height={170}
             className="object-contain"
+            style={{ width: "auto", height: "auto" }}
           />
         </div>
       </div>

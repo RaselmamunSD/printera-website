@@ -79,6 +79,7 @@ export default function ExperienceExcellence() {
               src={excellenceTruck}
               alt="Experience Excellence Service"
               fill
+              sizes="(max-width: 768px) 100vw, 40vw"
               className="object-cover"
               priority
             />

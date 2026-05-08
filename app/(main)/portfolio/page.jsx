@@ -24,6 +24,7 @@ const ProjectCard = ({ project }) => {
           src={project.image}
           alt={project.title}
           fill
+          sizes="(max-width: 768px) 100vw, 40vw"
           unoptimized={project.image.startsWith("http")}
           className="object-cover transition-transform duration-500 group-hover:scale-110"
         />

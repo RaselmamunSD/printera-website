@@ -24,6 +24,7 @@ const ProductCard = ({ product }) => {
           src={currentImage}
           alt={product.title}
           fill
+          sizes="(max-width: 768px) 100vw, 25vw"
           unoptimized={currentImage !== FALLBACK_PRODUCT_IMAGE}
           className="object-cover"
           onError={() => {
