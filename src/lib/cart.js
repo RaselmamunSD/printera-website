@@ -37,8 +37,12 @@ export async function fetchCart(deliveryMethod = "shipping") {
 }
 
 export async function addCartItem(payload) {
+    const headers = getCartHeaders();
+    if (payload instanceof FormData) {
+        headers["Content-Type"] = "multipart/form-data";
+    }
     const response = await axios.post("/cart/items/", payload, {
-        headers: getCartHeaders(),
+        headers: headers,
     });
     dispatchCartUpdated(response.data);
     return response.data;

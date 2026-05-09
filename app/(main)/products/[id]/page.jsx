@@ -73,6 +73,8 @@ export default function SignageConfigurator() {
   const [isDesignModalOpen, setIsDesignModalOpen] = useState(false);
   const [customDesign, setCustomDesign] = useState(null);
 
+  const [isFontColorModalOpen, setIsFontColorModalOpen] = useState(false);
+
   const [currentStep, setCurrentStep] = useState(1);
   const [config, setConfig] = useState({
     width: 8,
@@ -141,21 +143,26 @@ export default function SignageConfigurator() {
 
     try {
       setAddingToCart(true);
-      await addCartItem({
-        product_id: product.id,
-        quantity: config.quantity,
-        customization_data: {
-          width: Number(config.width),
-          height: Number(config.height),
-          material: config.material,
-          color: config.color,
-          text: config.text,
-          font: config.font,
-          fontColor: config.fontColor,
-          braille: config.braille,
-          note: config.note,
-        },
-      });
+      const formData = new FormData();
+      formData.append("product_id", product.id);
+      formData.append("quantity", config.quantity);
+      formData.append("customization_data", JSON.stringify({
+        width: Number(config.width),
+        height: Number(config.height),
+        material: config.material,
+        color: config.color,
+        text: config.text,
+        font: config.font,
+        fontColor: config.fontColor,
+        braille: config.braille,
+        note: config.note,
+      }));
+      
+      if (customDesign && customDesign instanceof File) {
+        formData.append("custom_design_file", customDesign);
+      }
+
+      await addCartItem(formData);
       toast.success("The product has been added to the cart");
     } catch (cartError) {
       toast.error(cartError.response?.data?.error || "Failed to add to cart.");
@@ -177,7 +184,29 @@ export default function SignageConfigurator() {
     product?.color_6,
     product?.color_7,
     product?.color_8,
+    ...(product?.background_colors || [])
   ].filter(Boolean);
+  
+  // Remove duplicates from all colors
+  const uniqueColorOptions = [...new Set(colorOptions)];
+  
+  // Pick the first 7 colors for the quick selector outside modal
+  const defaultQuickColors = uniqueColorOptions.slice(0, 7);
+
+  const fontColorOptions = [
+    product?.color_1,
+    product?.color_2,
+    product?.color_3,
+    product?.color_4,
+    product?.color_5,
+    product?.color_6,
+    product?.color_7,
+    product?.color_8,
+    ...(product?.font_colors || [])
+  ].filter(Boolean);
+
+  const uniqueFontColorOptions = [...new Set(fontColorOptions)];
+  const defaultQuickFontColors = uniqueFontColorOptions.slice(0, 7);
 
   if (loading) {
     return (
@@ -393,55 +422,14 @@ export default function SignageConfigurator() {
                       Background Color
                     </h3>
                     <div className="flex gap-2 flex-wrap items-center">
-                      <button
-                        onClick={() =>
-                          setConfig({ ...config, color: "#ffffff" })
-                        }
-                        className={`w-10 h-10 rounded-lg border-2 transition-all ${config.color === "#ffffff" ? "border-[#EE2A24]" : "border-gray-200"}`}
-                        style={{ backgroundColor: "#ffffff" }}
-                      />
-                      <button
-                        onClick={() =>
-                          setConfig({ ...config, color: "#000000" })
-                        }
-                        className={`w-10 h-10 rounded-lg border-2 transition-all ${config.color === "#000000" ? "border-[#EE2A24]" : "border-gray-200"}`}
-                        style={{ backgroundColor: "#000000" }}
-                      />
-                      <button
-                        onClick={() =>
-                          setConfig({ ...config, color: "#1d4ed8" })
-                        }
-                        className={`w-10 h-10 rounded-lg border-2 transition-all ${config.color === "#1d4ed8" ? "border-[#EE2A24]" : "border-gray-200"}`}
-                        style={{ backgroundColor: "#1d4ed8" }}
-                      />
-                      <button
-                        onClick={() =>
-                          setConfig({ ...config, color: "#64748b" })
-                        }
-                        className={`w-10 h-10 rounded-lg border-2 transition-all ${config.color === "#64748b" ? "border-[#EE2A24]" : "border-gray-200"}`}
-                        style={{ backgroundColor: "#64748b" }}
-                      />
-                      <button
-                        onClick={() =>
-                          setConfig({ ...config, color: "#d1d5db" })
-                        }
-                        className={`w-10 h-10 rounded-lg border-2 transition-all ${config.color === "#d1d5db" ? "border-[#EE2A24]" : "border-gray-200"}`}
-                        style={{ backgroundColor: "#d1d5db" }}
-                      />
-                      <button
-                        onClick={() =>
-                          setConfig({ ...config, color: "#d6d3d1" })
-                        }
-                        className={`w-10 h-10 rounded-lg border-2 transition-all ${config.color === "#d6d3d1" ? "border-[#EE2A24]" : "border-gray-200"}`}
-                        style={{ backgroundColor: "#d6d3d1" }}
-                      />
-                      <button
-                        onClick={() =>
-                          setConfig({ ...config, color: "#e5e7eb" })
-                        }
-                        className={`w-10 h-10 rounded-lg border-2 transition-all ${config.color === "#e5e7eb" ? "border-[#EE2A24]" : "border-gray-200"}`}
-                        style={{ backgroundColor: "#e5e7eb" }}
-                      />
+                      {defaultQuickColors.map((clr, idx) => (
+                        <button
+                          key={idx}
+                          onClick={() => setConfig({ ...config, color: clr })}
+                          className={`w-10 h-10 rounded-lg border-2 transition-all ${config.color === clr ? "border-[#EE2A24]" : "border-gray-200"}`}
+                          style={{ backgroundColor: clr }}
+                        />
+                      ))}
                       {/* Plus icon to open color modal */}
                       <button
                         onClick={() => setIsColorModalOpen(true)}
@@ -466,50 +454,7 @@ export default function SignageConfigurator() {
                         Background Color
                       </h3>
                       <div className="grid grid-cols-8 gap-3 max-h-80 overflow-y-auto p-1">
-                        {[
-                          "#ffffff",
-                          "#000000",
-                          "#1d4ed8",
-                          "#64748b",
-                          "#d1d5db",
-                          "#d1d5db",
-                          "#d1d5db",
-                          "#d1d5db",
-                          "#000000",
-                          "#1d4ed8",
-                          "#64748b",
-                          "#d1d5db",
-                          "#d1d5db",
-                          "#d1d5db",
-                          "#d1d5db",
-                          "#d1d5db",
-                          "#000000",
-                          "#1d4ed8",
-                          "#64748b",
-                          "#d1d5db",
-                          "#d1d5db",
-                          "#d1d5db",
-                          "#d1d5db",
-                          "#d1d5db",
-                          "#000000",
-                          "#1d4ed8",
-                          "#64748b",
-                          "#d1d5db",
-                          "#d1d5db",
-                          "#d1d5db",
-                          "#d1d5db",
-                          "#d1d5db",
-                          "#000000",
-                          "#1d4ed8",
-                          "#64748b",
-                          "#d1d5db",
-                          "#d1d5db",
-                          "#d1d5db",
-                          "#d1d5db",
-                          "#d1d5db",
-                          "#000000",
-                          "#1d4ed8",
-                        ].map((clr, i) => (
+                        {uniqueColorOptions.map((clr, i) => (
                           <button
                             key={i}
                             onClick={() => {
@@ -719,54 +664,66 @@ export default function SignageConfigurator() {
                       Font Color
                     </label>
                     <div className="flex gap-2 flex-wrap items-center">
-                      <button
-                        onClick={() =>
-                          setConfig({ ...config, fontColor: "#ffffff" })
-                        }
-                        className={`w-10 h-10 rounded-lg border-2 transition-all ${config.fontColor === "#ffffff" ? "border-[#EE2A24]" : "border-gray-200"}`}
-                        style={{ backgroundColor: "#ffffff" }}
-                      />
-                      <button
-                        onClick={() =>
-                          setConfig({ ...config, fontColor: "#000000" })
-                        }
-                        className={`w-10 h-10 rounded-lg border-2 transition-all ${config.fontColor === "#000000" ? "border-[#EE2A24]" : "border-gray-200"}`}
-                        style={{ backgroundColor: "#000000" }}
-                      />
-                      {!isAdaSign && (
-                        <>
+                        {defaultQuickFontColors.map((clr, idx) => (
                           <button
-                            onClick={() =>
-                              setConfig({ ...config, fontColor: "#1d4ed8" })
-                            }
-                            className={`w-10 h-10 rounded-lg border-2 transition-all ${config.fontColor === "#1d4ed8" ? "border-[#EE2A24]" : "border-gray-200"}`}
-                            style={{ backgroundColor: "#1d4ed8" }}
+                            key={idx}
+                            onClick={() => setConfig({ ...config, fontColor: clr })}
+                            className={`w-10 h-10 rounded-lg border-2 transition-all ${config.fontColor === clr ? "border-[#EE2A24]" : "border-gray-200"}`}
+                            style={{ backgroundColor: clr }}
                           />
-                          <button
-                            onClick={() =>
-                              setConfig({ ...config, fontColor: "#64748b" })
-                            }
-                            className={`w-10 h-10 rounded-lg border-2 transition-all ${config.fontColor === "#64748b" ? "border-[#EE2A24]" : "border-gray-200"}`}
-                            style={{ backgroundColor: "#64748b" }}
-                          />
-                          <button
-                            onClick={() =>
-                              setConfig({ ...config, fontColor: "#d1d5db" })
-                            }
-                            className={`w-10 h-10 rounded-lg border-2 transition-all ${config.fontColor === "#d1d5db" ? "border-[#EE2A24]" : "border-gray-200"}`}
-                            style={{ backgroundColor: "#d1d5db" }}
-                          />
-                          <button
-                            onClick={() => {}}
-                            className="w-10 h-10 rounded-lg border-2 border-gray-200 flex items-center justify-center text-gray-500 hover:border-gray-400 hover:text-gray-700 transition-all bg-white"
-                          >
-                            <Plus size={20} />
-                          </button>
-                        </>
-                      )}
+                        ))}
+                        <button
+                          onClick={() => setIsFontColorModalOpen(true)}
+                          className="w-10 h-10 rounded-lg border-2 border-gray-200 flex items-center justify-center text-gray-500 hover:border-gray-400 hover:text-gray-700 transition-all bg-white"
+                        >
+                          <Plus size={20} />
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
+
+                  {isFontColorModalOpen && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+                      <div className="bg-white rounded-2xl w-full max-w-lg p-6 relative shadow-2xl">
+                        <button
+                          onClick={() => setIsFontColorModalOpen(false)}
+                          className="absolute top-4 right-4 text-gray-400 hover:text-gray-900 transition-colors z-10 w-8 h-8 flex items-center justify-center bg-gray-100 rounded-full"
+                        >
+                          <X size={18} />
+                        </button>
+                        <h3 className="font-bold text-gray-900 mb-6">
+                          Font Color
+                        </h3>
+                        <div className="grid grid-cols-8 gap-3 max-h-80 overflow-y-auto p-1">
+                          {uniqueFontColorOptions.map((clr, i) => (
+                            <button
+                              key={i}
+                              onClick={() => {
+                                setConfig({ ...config, fontColor: clr });
+                                setIsFontColorModalOpen(false);
+                              }}
+                              className={`w-10 h-10 rounded-lg shadow-sm border-2 transition-all ${config.fontColor === clr ? "border-[#EE2A24]" : "border-gray-200 hover:border-gray-400"}`}
+                              style={{ backgroundColor: clr }}
+                            />
+                          ))}
+                        </div>
+                        <div className="mt-8 flex gap-4">
+                          <button
+                            onClick={() => setIsFontColorModalOpen(false)}
+                            className="w-1/2 py-3 border border-gray-300 rounded-xl font-bold bg-white hover:bg-gray-50"
+                          >
+                            Back
+                          </button>
+                          <button
+                            onClick={() => setIsFontColorModalOpen(false)}
+                            className="w-1/2 py-3 bg-[#EE2A24] text-white rounded-xl font-bold hover:bg-[#d6221c]"
+                          >
+                            Continue
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
               </div>
             )}
 
