@@ -80,10 +80,10 @@ export default function SignageConfigurator() {
     width: 8,
     height: 6,
     material: "Acrylic",
-    color: product?.color_1 || "#000000",
+    color: product?.background_colors?.[0] || "",
     text: "RESTROOM",
     font: "Helvetica (ADA Compliant)",
-    fontColor: "#ffffff",
+    fontColor: product?.font_colors?.[0] || "#ffffff",
     braille: false,
     quantity: 1,
     note: "",
@@ -98,7 +98,7 @@ export default function SignageConfigurator() {
     if (product) {
       setConfig((prev) => ({
         ...prev,
-        color: product.color_1 || "#000000",
+        color: product.background_colors?.[0] || "",
         text: (product.name || "CUSTOM SIGN").toUpperCase(),
       }));
     }
@@ -176,14 +176,6 @@ export default function SignageConfigurator() {
   const prevStep = () => setCurrentStep((prev) => Math.max(prev - 1, 1));
 
   const colorOptions = [
-    product?.color_1,
-    product?.color_2,
-    product?.color_3,
-    product?.color_4,
-    product?.color_5,
-    product?.color_6,
-    product?.color_7,
-    product?.color_8,
     ...(product?.background_colors || [])
   ].filter(Boolean);
   
@@ -194,14 +186,6 @@ export default function SignageConfigurator() {
   const defaultQuickColors = uniqueColorOptions.slice(0, 7);
 
   const fontColorOptions = [
-    product?.color_1,
-    product?.color_2,
-    product?.color_3,
-    product?.color_4,
-    product?.color_5,
-    product?.color_6,
-    product?.color_7,
-    product?.color_8,
     ...(product?.font_colors || [])
   ].filter(Boolean);
 
@@ -260,7 +244,7 @@ export default function SignageConfigurator() {
               </span>
               <button
                 onClick={() =>
-                  setConfig({ ...config, text: "RESTROOM", color: "#000000" })
+                  setConfig({ ...config, text: "RESTROOM", color: product?.background_colors?.[0] || "" })
                 }
                 className="flex items-center gap-2 text-xs text-gray-500 hover:text-gray-800"
               >
