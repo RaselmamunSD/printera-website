@@ -130,10 +130,15 @@ export default function SignageConfigurator() {
 
   // Steps updated to 5
   const totalSteps = 5;
-  const basePrice = Number(product?.price || 53.0);
+  const pricePerSquareInch = 1.3;
+  const width = Math.max(0, Number(config.width) || 0);
+  const height = Math.max(0, Number(config.height) || 0);
+  const area = width * height;
+  const basePrice = area * pricePerSquareInch;
   const braillePrice = config.braille ? 8.0 : 0;
   const unitPrice = basePrice + braillePrice;
   const totalPrice = unitPrice * config.quantity;
+  const previewTextColor = config.fontColor || ((config.color === "#000000" || config.color === "#0000FF") ? "white" : "black");
 
   const handleAddToCart = async () => {
     if (!product?.id) {
@@ -261,10 +266,8 @@ export default function SignageConfigurator() {
                 <p
                   className="font-bold text-5xl transition-all"
                   style={{
-                    color:
-                      config.color === "#000000" || config.color === "#0000FF"
-                        ? "white"
-                        : "black",
+                    color: previewTextColor,
+                    fontFamily: config.font,
                   }}
                 >
                   {config.text}
@@ -272,10 +275,8 @@ export default function SignageConfigurator() {
                 <p
                   className="text-sm mt-2"
                   style={{
-                    color:
-                      config.color === "#000000" || config.color === "#0000FF"
-                        ? "white"
-                        : "black",
+                    color: previewTextColor,
+                    fontFamily: config.font,
                   }}
                 >
                   {config.width}&quot;×{config.height}&quot;
